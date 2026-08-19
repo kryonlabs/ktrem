@@ -1098,6 +1098,8 @@ int main(void)
         return 1;
     if(!capture_osc_color_query())
         return 1;
+    if(!c1_controls_parse_csi_and_osc())
+        return 1;
     if(!capture_response_sequence("primary device attributes", "\x1b[c",
                                   "\x1b[?1;2c"))
         return 1;
