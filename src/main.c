@@ -487,6 +487,33 @@ static void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     }
 }
 
+static void draw_starting_frame(State *app)
+{
+    Rectangle bounds = {0, 0, (float)GetScreenWidth(), (float)GetScreenHeight()};
+    int menu_h = 26;
+    int tab_h = 34;
+    int pad = app != NULL ? app->config.padding : 8;
+    Rectangle viewport = {
+        bounds.x + (float)pad,
+        bounds.y + (float)(menu_h + tab_h + pad),
+        bounds.width - (float)(pad * 2),
+        bounds.height - (float)(menu_h + tab_h + pad * 2)
+    };
+
+    DrawRectangleRec(bounds, app->palette.background);
+    draw_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
+                                   (float)menu_h});
+    draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
+                               bounds.width, (float)tab_h});
+    DrawRectangleRec(viewport, app->palette.terminal_background);
+    DrawRectangleLines((int)viewport.x, (int)viewport.y,
+                       (int)viewport.width, (int)viewport.height,
+                       app->palette.chrome_border);
+    DrawUIText("Starting terminal...", (int)viewport.x + 10,
+               (int)viewport.y + 10, app->config.font_size,
+               app->palette.foreground);
+}
+
 static void handle_shortcuts(State *app)
 {
     Session *session = active_session(app);
@@ -575,18 +602,29 @@ int main(int argc, char **argv)
     palette_default(&app.palette);
     SetTraceLogLevel(LOG_WARNING);
     InitWindow(980, 660, "Kapsule");
+    InitUI(GetScreenWidth(), GetScreenHeight(), GetWindowScaleDPI().x);
     load_kryon_font();
     palette_apply_system_theme(&app.palette);
     SetTargetFPS(60);
     for(i = 0; i < MAX_SESSIONS; i++)
         session_init(&app.sessions[i]);
-    open_session(&app, NULL);
+    BeginUIFrame(GetScreenWidth(), GetScreenHeight(), GetWindowScaleDPI().x);
+    BeginDrawing();
+    ClearBackground(app.palette.background);
+    draw_starting_frame(&app);
+    EndDrawing();
+    EndUIFrame();
 
     while(!WindowShouldClose()) {
         Session *session = active_session(&app);
 
+        if(session == NULL && app.session_count == 0) {
+            open_session(&app, NULL);
+            session = active_session(&app);
+        }
         if(session != NULL)
             terminal_poll(&session->terminal);
+        BeginUIFrame(GetScreenWidth(), GetScreenHeight(), GetWindowScaleDPI().x);
         BeginDrawing();
         ClearBackground(app.palette.background);
         if(session != NULL) {
@@ -594,8 +632,11 @@ int main(int argc, char **argv)
                                (Rectangle){0, 0, (float)GetScreenWidth(),
                                            (float)GetScreenHeight()});
             handle_input(&app);
+        } else {
+            draw_starting_frame(&app);
         }
         EndDrawing();
+        EndUIFrame();
     }
 
     for(i = 0; i < app.session_count; i++)
