@@ -4,7 +4,7 @@
 #include "terminal.h"
 
 int input_mods(void);
-void input_send_keyboard(Terminal *terminal);
+void input_send_keyboard(TerminalState *terminal);
 
 #endif
 

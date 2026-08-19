@@ -36,7 +36,8 @@ APP = $(BUILD_DIR)/bin/kapsule
 TEST = $(BUILD_DIR)/tests/terminal_test
 SRC_FILES := $(wildcard src/*.c)
 OBJS = $(patsubst src/%.c,$(BUILD_DIR)/src/%.o,$(SRC_FILES))
-TEST_OBJS = $(BUILD_DIR)/tests/terminal_test.o $(BUILD_DIR)/src/terminal.o
+TEST_OBJS = $(BUILD_DIR)/tests/terminal_test.o $(BUILD_DIR)/src/terminal.o \
+	$(BUILD_DIR)/src/session.o
 
 RAY_SDL_CFLAGS ?= $(shell pkg-config --cflags sdl2 2>/dev/null)
 RAY_SDL_LDLIBS ?= $(shell pkg-config --libs sdl2 2>/dev/null)

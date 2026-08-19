@@ -27,6 +27,7 @@ void palette_default(Palette *palette)
     palette->foreground = (Color){224, 228, 235, 255};
     palette->muted = (Color){112, 116, 122, 255};
     palette->selection = (Color){62, 108, 167, 190};
+    palette->link = (Color){36, 114, 200, 255};
     palette->chrome = (Color){232, 230, 226, 255};
     palette->chrome_light = (Color){247, 246, 244, 255};
     palette->chrome_border = (Color){162, 158, 151, 255};
@@ -78,6 +79,7 @@ void palette_apply_system_theme(Palette *palette)
     Color button;
     Color hover;
     Color link;
+    TerminalPaneColors terminal_colors;
     Color dark = {0, 0, 0, 255};
     Color light = {255, 255, 255, 255};
 
@@ -87,7 +89,7 @@ void palette_apply_system_theme(Palette *palette)
     SetThemeMode(THEME_MODE_SYSTEM);
     RefreshSystemTheme();
     ReloadThemes();
-    SetThemeStyle(GetDefaultPlatformThemeStyle());
+    SetThemeStyle(THEME_STYLE_SYSTEM);
     SetCurrentTheme(GetDefaultThemeForThemeStyle(GetEffectiveThemeStyle()),
                     GetEffectiveThemeDarkMode() ? 1 : 0);
 
@@ -97,23 +99,42 @@ void palette_apply_system_theme(Palette *palette)
     button = GetThemeButton();
     hover = GetThemeButtonHover();
     link = GetThemeLink();
+    terminal_colors = GetTerminalPaneThemeColors();
 
     if(color_visible(bg))
         palette->background = bg;
+    if(color_visible(terminal_colors.background))
+        palette->terminal_background = terminal_colors.background;
     if(color_visible(surface))
         palette->chrome = surface;
     if(color_visible(button))
         palette->tab = button;
     if(color_visible(hover))
         palette->tab_active = hover;
+    if(color_visible(terminal_colors.text))
+        palette->foreground = terminal_colors.text;
+    else if(color_visible(text))
+        palette->foreground = text;
     if(color_visible(text))
         palette->menu_text = text;
+    if(color_visible(terminal_colors.muted_text))
+        palette->muted = terminal_colors.muted_text;
+    else if(color_visible(GetThemeIcon()))
+        palette->muted = GetThemeIcon();
     palette->chrome_light = mix_color(palette->chrome, light, 0.18f);
-    palette->chrome_border = mix_color(palette->chrome,
-                                       GetEffectiveThemeDarkMode() ? light : dark,
-                                       0.32f);
-    if(color_visible(link))
-        palette->selection = Fade(link, 0.48f);
+    if(color_visible(terminal_colors.border))
+        palette->chrome_border = terminal_colors.border;
+    else
+        palette->chrome_border = mix_color(palette->chrome,
+                                           GetEffectiveThemeDarkMode() ? light : dark,
+                                           0.32f);
+    if(color_visible(terminal_colors.selection))
+        palette->selection = terminal_colors.selection;
+    if(color_visible(link)) {
+        palette->link = link;
+        if(!color_visible(terminal_colors.selection))
+            palette->selection = Fade(link, 0.48f);
+    }
 }
 
 Color palette_resolve(const Palette *palette, int value, Color fallback)

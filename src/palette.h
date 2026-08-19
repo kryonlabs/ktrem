@@ -9,6 +9,7 @@ typedef struct Palette {
     Color foreground;
     Color muted;
     Color selection;
+    Color link;
     Color chrome;
     Color chrome_light;
     Color chrome_border;
