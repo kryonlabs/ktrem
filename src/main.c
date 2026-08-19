@@ -1737,7 +1737,6 @@ static void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     TerminalState *terminal = &session->terminal;
     int menu_h = ScaleUIPx(34);
     int tab_h = TabBarHeight();
-    int chrome_h = menu_h + tab_h;
     int total_rows;
     int row;
     int cols;
@@ -1754,10 +1753,10 @@ static void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     UseUIFont("kapsule-ui");
     app->viewport =
         (Rectangle){bounds.x + (float)app->config.padding,
-                    bounds.y + (float)(chrome_h + app->config.padding),
+                    bounds.y + (float)(menu_h + app->config.padding),
                     bounds.width - (float)(app->config.padding * 2),
                     bounds.height -
-                        (float)(chrome_h + app->config.padding * 2)};
+                        (float)(menu_h + tab_h + app->config.padding * 2)};
     cols = (int)app->viewport.width / app->cell_w;
     app->visible_rows = (int)app->viewport.height / app->line_h;
     terminal_resize(terminal, cols, app->visible_rows);
@@ -1771,8 +1770,6 @@ static void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     DrawRectangleRec(bounds, app->palette.background);
     draw_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
                                    (float)menu_h});
-    draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
-                               bounds.width, (float)tab_h});
     DrawRectangleRec(app->viewport,
                      resolve_terminal_color(app, terminal, terminal->default_bg,
                                             app->palette.terminal_background));
@@ -1839,6 +1836,9 @@ static void draw_terminal_view(State *app, Session *session, Rectangle bounds)
                          MeasureUIText(label, 13) - 8),
                    (int)app->viewport.y + 8, 13, app->palette.muted);
     }
+    draw_tabs(app, (Rectangle){bounds.x,
+                               bounds.y + bounds.height - (float)tab_h,
+                               bounds.width, (float)tab_h});
     draw_context_menu(app, session);
     if(app->about_visible &&
        MessageDialog((MessageDialogProps){
@@ -1921,7 +1921,7 @@ static void draw_starting_frame(State *app)
     int pad = app != NULL ? app->config.padding : 8;
     Rectangle viewport = {
         bounds.x + (float)pad,
-        bounds.y + (float)(menu_h + tab_h + pad),
+        bounds.y + (float)(menu_h + pad),
         bounds.width - (float)(pad * 2),
         bounds.height - (float)(menu_h + tab_h + pad * 2)
     };
@@ -1929,8 +1929,6 @@ static void draw_starting_frame(State *app)
     DrawRectangleRec(bounds, app->palette.background);
     draw_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
                                    (float)menu_h});
-    draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
-                               bounds.width, (float)tab_h});
     DrawRectangleRec(viewport, app->palette.terminal_background);
     DrawRectangleLines((int)viewport.x, (int)viewport.y,
                        (int)viewport.width, (int)viewport.height,
@@ -1938,6 +1936,9 @@ static void draw_starting_frame(State *app)
     DrawUIText("Starting terminal...", (int)viewport.x + 10,
                (int)viewport.y + 10, app->config.font_size,
                app->palette.foreground);
+    draw_tabs(app, (Rectangle){bounds.x,
+                               bounds.y + bounds.height - (float)tab_h,
+                               bounds.width, (float)tab_h});
 }
 
 static void handle_shortcuts(State *app)
