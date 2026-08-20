@@ -1,19 +1,18 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-typedef struct Config {
-    int font_size;
-    int padding;
-    int scrollback_limit;
-    int cursor_style;
-    int terminal_foreground;
-    int terminal_background;
-    char shell[512];
-    char working_directory[1024];
-    char command[1024];
-    char terminal_font[1024];
-} Config;
+#include "terminal_pane.h"
 
+#define KAPSULE_DEFAULT_FONT_SIZE 16
+#define KAPSULE_MIN_FONT_SIZE 10
+#define KAPSULE_MAX_FONT_SIZE 48
+#define KAPSULE_DEFAULT_SCROLLBACK_LIMIT 5000
+#define KAPSULE_MIN_SCROLLBACK_LIMIT 100
+#define KAPSULE_MAX_SCROLLBACK_LIMIT 100000
+
+typedef TerminalPaneProfileSettings Config;
+
+TerminalPaneProfileLimits config_profile_limits(void);
 void config_defaults(Config *config);
 void config_load(Config *config);
 int config_save(const Config *config);

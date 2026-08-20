@@ -25,6 +25,21 @@ endif
 BUILD_DIR ?= $(BUILD_ROOT)/$(PLATFORM)-$(ARCH)
 ENGINE_BUILD_DIR ?= $(ENGINE_DIR)/build/$(PLATFORM)-$(ARCH)
 ENGINE_LIB = $(ENGINE_BUILD_DIR)/libkryon.a
+ENGINE_CLIPBOARD_OBJ = $(ENGINE_BUILD_DIR)/ui/ui_clipboard.o
+ENGINE_TERMINAL_PANE_CLIPBOARD_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_clipboard.o
+ENGINE_TERMINAL_PANE_CSI_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_csi.o
+ENGINE_TERMINAL_PANE_DCS_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_dcs.o
+ENGINE_TERMINAL_PANE_KEYS_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_keys.o
+ENGINE_TERMINAL_PANE_MODES_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_modes.o
+ENGINE_TERMINAL_PANE_MOUSE_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_mouse.o
+ENGINE_TERMINAL_PANE_OSC_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_osc.o
+ENGINE_TERMINAL_PANE_PROFILE_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_profile.o
+ENGINE_TERMINAL_PANE_REFLOW_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_reflow.o
+ENGINE_TERMINAL_PANE_SELECTION_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_selection.o
+ENGINE_TERMINAL_PANE_SESSION_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_session.o
+ENGINE_TERMINAL_PANE_SGR_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_sgr.o
+ENGINE_TERMINAL_PANE_SIXEL_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_sixel.o
+ENGINE_TERMINAL_PANE_TEXT_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_text.o
 RAYLIB_A = $(ENGINE_BUILD_DIR)/raylib/libraylib.a
 LIBOQS_A = $(ENGINE_BUILD_DIR)/vendor/liboqs/lib/liboqs.a
 CURL_A = $(ENGINE_BUILD_DIR)/vendor/curl/lib/libcurl.a
@@ -36,8 +51,22 @@ APP = $(BUILD_DIR)/bin/kapsule
 TEST = $(BUILD_DIR)/tests/terminal_test
 SRC_FILES := $(wildcard src/*.c)
 OBJS = $(patsubst src/%.c,$(BUILD_DIR)/src/%.o,$(SRC_FILES))
-TEST_OBJS = $(BUILD_DIR)/tests/terminal_test.o $(BUILD_DIR)/src/terminal.o \
-	$(BUILD_DIR)/src/session.o
+TEST_OBJS = $(BUILD_DIR)/tests/terminal_test.o $(BUILD_DIR)/src/config.o \
+	$(BUILD_DIR)/src/terminal.o \
+	$(BUILD_DIR)/src/terminal_csi.o \
+	$(BUILD_DIR)/src/terminal_modes.o \
+	$(BUILD_DIR)/src/terminal_keys.o $(BUILD_DIR)/src/terminal_paste.o \
+	$(BUILD_DIR)/src/terminal_mouse.o $(BUILD_DIR)/src/terminal_search.o \
+	$(BUILD_DIR)/src/terminal_view.o $(BUILD_DIR)/src/terminal_osc.o \
+	$(BUILD_DIR)/src/terminal_sixel.o $(BUILD_DIR)/src/terminal_dcs.o \
+	$(BUILD_DIR)/src/terminal_sgr.o $(BUILD_DIR)/src/terminal_screen.o \
+	$(BUILD_DIR)/src/terminal_text.o \
+	$(BUILD_DIR)/src/terminal_parser.o \
+	$(BUILD_DIR)/src/terminal_pty.o \
+	$(BUILD_DIR)/src/session.o \
+	$(BUILD_DIR)/src/input.o $(BUILD_DIR)/src/selection.o \
+	$(BUILD_DIR)/src/session_store.o $(BUILD_DIR)/src/profile.o \
+	$(BUILD_DIR)/src/palette.o
 
 RAY_SDL_CFLAGS ?= $(shell pkg-config --cflags sdl2 2>/dev/null)
 RAY_SDL_LDLIBS ?= $(shell pkg-config --libs sdl2 2>/dev/null)
@@ -81,8 +110,36 @@ $(APP): engine $(OBJS) $(ENGINE_LIB) $(RAYLIB_A) | $(BUILD_DIR)/bin
 		-Wl,--whole-archive $(ENGINE_LIB) -Wl,--no-whole-archive \
 		$(LDLIBS)
 
-$(TEST): $(TEST_OBJS) | $(BUILD_DIR)/tests
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(TEST_OBJS)
+$(TEST): engine $(TEST_OBJS) $(ENGINE_CLIPBOARD_OBJ) \
+		$(ENGINE_TERMINAL_PANE_CLIPBOARD_OBJ) \
+		$(ENGINE_TERMINAL_PANE_CSI_OBJ) \
+		$(ENGINE_TERMINAL_PANE_DCS_OBJ) \
+		$(ENGINE_TERMINAL_PANE_KEYS_OBJ) \
+		$(ENGINE_TERMINAL_PANE_MODES_OBJ) \
+		$(ENGINE_TERMINAL_PANE_MOUSE_OBJ) \
+		$(ENGINE_TERMINAL_PANE_OSC_OBJ) \
+		$(ENGINE_TERMINAL_PANE_PROFILE_OBJ) \
+		$(ENGINE_TERMINAL_PANE_REFLOW_OBJ) \
+		$(ENGINE_TERMINAL_PANE_SESSION_OBJ) \
+		$(ENGINE_TERMINAL_PANE_SELECTION_OBJ) \
+		$(ENGINE_TERMINAL_PANE_SGR_OBJ) \
+		$(ENGINE_TERMINAL_PANE_SIXEL_OBJ) \
+		$(ENGINE_TERMINAL_PANE_TEXT_OBJ) | $(BUILD_DIR)/tests
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(TEST_OBJS) $(ENGINE_CLIPBOARD_OBJ) \
+		$(ENGINE_TERMINAL_PANE_CLIPBOARD_OBJ) \
+		$(ENGINE_TERMINAL_PANE_CSI_OBJ) \
+		$(ENGINE_TERMINAL_PANE_DCS_OBJ) \
+		$(ENGINE_TERMINAL_PANE_KEYS_OBJ) \
+		$(ENGINE_TERMINAL_PANE_MODES_OBJ) \
+		$(ENGINE_TERMINAL_PANE_MOUSE_OBJ) \
+		$(ENGINE_TERMINAL_PANE_OSC_OBJ) \
+		$(ENGINE_TERMINAL_PANE_PROFILE_OBJ) \
+		$(ENGINE_TERMINAL_PANE_REFLOW_OBJ) \
+		$(ENGINE_TERMINAL_PANE_SESSION_OBJ) \
+		$(ENGINE_TERMINAL_PANE_SELECTION_OBJ) \
+		$(ENGINE_TERMINAL_PANE_SGR_OBJ) \
+		$(ENGINE_TERMINAL_PANE_SIXEL_OBJ) \
+		$(ENGINE_TERMINAL_PANE_TEXT_OBJ)
 
 $(BUILD_DIR)/src/%.o: src/%.c src/*.h | $(BUILD_DIR)/src
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@

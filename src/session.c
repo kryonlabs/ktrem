@@ -19,47 +19,24 @@ static void copy_text(char *dst, int dst_size, const char *src)
     dst[len] = '\0';
 }
 
-static const char *path_basename(const char *path)
+static void set_short_title(Session *session, const char *text,
+                            const char *fallback)
 {
-    const char *end;
-    const char *slash;
-
-    if(path == NULL || path[0] == '\0')
-        return "terminal";
-    end = path + strlen(path);
-    while(end > path && end[-1] == '/')
-        end--;
-    if(end == path)
-        return "/";
-    slash = end;
-    while(slash > path && slash[-1] != '/')
-        slash--;
-    return slash;
+    if(session == NULL)
+        return;
+    (void)FormatTerminalPaneSessionTitle(
+        session->title, (int)sizeof(session->title), text, fallback);
 }
 
 static void set_default_title(Session *session)
 {
-    const char *title;
-    int len;
-
     if(session == NULL)
         return;
     if(session->command[0] != '\0') {
-        copy_text(session->title, (int)sizeof(session->title), session->command);
+        set_short_title(session, session->command, "terminal");
         return;
     }
-    title = path_basename(session->cwd);
-    len = (int)strlen(title);
-    while(len > 1 && title[len - 1] == '/')
-        len--;
-    if(len <= 0) {
-        copy_text(session->title, (int)sizeof(session->title), "terminal");
-        return;
-    }
-    if(len >= (int)sizeof(session->title))
-        len = (int)sizeof(session->title) - 1;
-    memcpy(session->title, title, (size_t)len);
-    session->title[len] = '\0';
+    set_short_title(session, session->cwd, "terminal");
 }
 
 void session_init(Session *session)
@@ -125,17 +102,17 @@ void session_restore_title(Session *session, const char *title,
 {
     if(session == NULL || title == NULL || title[0] == '\0')
         return;
-    copy_text(session->title, (int)sizeof(session->title), title);
     session->title_override = title_override ? 1 : 0;
+    if(session->title_override)
+        copy_text(session->title, (int)sizeof(session->title), title);
+    else
+        set_short_title(session, title, "terminal");
 }
 
 void session_sync_terminal_metadata(Session *session)
 {
     if(session == NULL)
         return;
-    if(session->terminal.title[0] != '\0' && !session->title_override)
-        copy_text(session->title, (int)sizeof(session->title),
-                  session->terminal.title);
     if(session->terminal.current_directory[0] != '\0' &&
        strcmp(session->cwd, session->terminal.current_directory) != 0) {
         copy_text(session->cwd, (int)sizeof(session->cwd),
@@ -143,6 +120,8 @@ void session_sync_terminal_metadata(Session *session)
         if(!session->title_override && session->terminal.title[0] == '\0')
             set_default_title(session);
     }
+    if(session->terminal.title[0] != '\0' && !session->title_override)
+        set_short_title(session, session->terminal.title, "terminal");
 }
 
 void session_current_cwd(const Session *session, char *out, int out_size)

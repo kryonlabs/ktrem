@@ -1,33 +1,30 @@
 #include "config.h"
 
-#include "terminal.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
-static void copy_text(char *dst, int dst_size, const char *src)
+TerminalPaneProfileLimits config_profile_limits(void)
 {
-    if(dst == NULL || dst_size <= 0)
-        return;
-    if(src == NULL)
-        src = "";
-    snprintf(dst, (size_t)dst_size, "%s", src);
+    TerminalPaneProfileLimits limits = GetDefaultTerminalPaneProfileLimits();
+
+    limits.default_font_size = KAPSULE_DEFAULT_FONT_SIZE;
+    limits.min_font_size = KAPSULE_MIN_FONT_SIZE;
+    limits.max_font_size = KAPSULE_MAX_FONT_SIZE;
+    limits.default_scrollback_limit = KAPSULE_DEFAULT_SCROLLBACK_LIMIT;
+    limits.min_scrollback_limit = KAPSULE_MIN_SCROLLBACK_LIMIT;
+    limits.max_scrollback_limit = KAPSULE_MAX_SCROLLBACK_LIMIT;
+    limits.default_cursor_style = TERMINAL_PANE_CURSOR_BLOCK;
+    return limits;
 }
 
 void config_defaults(Config *config)
 {
     if(config == NULL)
         return;
-    memset(config, 0, sizeof(*config));
-    config->font_size = 16;
-    config->padding = 10;
-    config->scrollback_limit = 5000;
-    config->cursor_style = TERMINAL_CURSOR_BLOCK;
-    config->terminal_foreground = COLOR_DEFAULT;
-    config->terminal_background = COLOR_DEFAULT;
+    InitTerminalPaneProfileSettings(config, config_profile_limits());
 }
 
 static void trim_newline(char *text)
@@ -42,70 +39,41 @@ static void trim_newline(char *text)
     }
 }
 
-static const char *cursor_style_name(int style)
+static char *trim_spaces(char *text)
 {
-    if(style == TERMINAL_CURSOR_UNDERLINE)
-        return "underline";
-    if(style == TERMINAL_CURSOR_BAR)
-        return "bar";
-    return "block";
-}
+    char *end;
 
-static int hex_value(int ch)
-{
-    if(ch >= '0' && ch <= '9')
-        return ch - '0';
-    if(ch >= 'a' && ch <= 'f')
-        return 10 + ch - 'a';
-    if(ch >= 'A' && ch <= 'F')
-        return 10 + ch - 'A';
-    return -1;
-}
-
-static int parse_color_value(const char *text, int *out)
-{
-    int r;
-    int g;
-    int b;
-    int r1;
-    int r2;
-    int g1;
-    int g2;
-    int b1;
-    int b2;
-
-    if(out == NULL || text == NULL)
-        return 0;
-    if(strcmp(text, "default") == 0 || strcmp(text, "system") == 0 ||
-       strcmp(text, "theme") == 0) {
-        *out = COLOR_DEFAULT;
-        return 1;
-    }
-    if(text[0] == '#')
+    if(text == NULL)
+        return NULL;
+    while(*text == ' ' || *text == '\t')
         text++;
-    if(strlen(text) != 6)
-        return 0;
-    r1 = hex_value((unsigned char)text[0]);
-    r2 = hex_value((unsigned char)text[1]);
-    g1 = hex_value((unsigned char)text[2]);
-    g2 = hex_value((unsigned char)text[3]);
-    b1 = hex_value((unsigned char)text[4]);
-    b2 = hex_value((unsigned char)text[5]);
-    if(r1 < 0 || r2 < 0 || g1 < 0 || g2 < 0 || b1 < 0 || b2 < 0)
-        return 0;
-    r = (r1 << 4) | r2;
-    g = (g1 << 4) | g2;
-    b = (b1 << 4) | b2;
-    *out = COLOR_TRUE_RGB | (r << 16) | (g << 8) | b;
-    return 1;
+    end = text + strlen(text);
+    while(end > text && (end[-1] == ' ' || end[-1] == '\t'))
+        *--end = '\0';
+    return text;
+}
+
+static void write_setting(FILE *file, const char *name, const char *value)
+{
+    char escaped[4096];
+
+    if(file == NULL || name == NULL || value == NULL || value[0] == '\0')
+        return;
+    fprintf(file, "%s=", name);
+    EscapeTerminalPaneText(escaped, (int)sizeof(escaped), value);
+    fputs(escaped, file);
+    fputc('\n', file);
 }
 
 static void write_color(FILE *file, const char *name, int color)
 {
-    if(file == NULL || name == NULL || color == COLOR_DEFAULT)
+    char text[16];
+
+    if(file == NULL || name == NULL ||
+       color == TERMINAL_PANE_COLOR_DEFAULT)
         return;
-    if((color & COLOR_TRUE_RGB) != 0)
-        fprintf(file, "%s=#%06x\n", name, color & 0xffffff);
+    if(FormatTerminalPaneProfileColor(text, (int)sizeof(text), color) > 0)
+        fprintf(file, "%s=%s\n", name, text);
 }
 
 static int config_path(char *path, int path_size)
@@ -145,61 +113,8 @@ static void ensure_parent_dirs(const char *path)
 
 void config_apply_arg(Config *config, const char *name, const char *value)
 {
-    if(config == NULL || name == NULL || value == NULL)
-        return;
-    if(strcmp(name, "font_size") == 0 || strcmp(name, "font-size") == 0) {
-        int n = atoi(value);
-
-        if(n >= 10 && n <= 48)
-            config->font_size = n;
-    } else if(strcmp(name, "padding") == 0) {
-        int n = atoi(value);
-
-        if(n >= 0 && n <= 48)
-            config->padding = n;
-    } else if(strcmp(name, "scrollback") == 0 ||
-              strcmp(name, "scrollback_limit") == 0) {
-        int n = atoi(value);
-
-        if(n >= 100 && n <= 100000)
-            config->scrollback_limit = n;
-    } else if(strcmp(name, "cursor_style") == 0 ||
-              strcmp(name, "cursor-style") == 0) {
-        if(strcmp(value, "block") == 0 || strcmp(value, "1") == 0)
-            config->cursor_style = TERMINAL_CURSOR_BLOCK;
-        else if(strcmp(value, "underline") == 0 || strcmp(value, "2") == 0)
-            config->cursor_style = TERMINAL_CURSOR_UNDERLINE;
-        else if(strcmp(value, "bar") == 0 || strcmp(value, "beam") == 0 ||
-                strcmp(value, "3") == 0)
-            config->cursor_style = TERMINAL_CURSOR_BAR;
-    } else if(strcmp(name, "shell") == 0) {
-        copy_text(config->shell, (int)sizeof(config->shell), value);
-    } else if(strcmp(name, "working_directory") == 0 ||
-              strcmp(name, "working-directory") == 0) {
-        copy_text(config->working_directory,
-                  (int)sizeof(config->working_directory), value);
-    } else if(strcmp(name, "command") == 0) {
-        copy_text(config->command, (int)sizeof(config->command), value);
-    } else if(strcmp(name, "terminal_font") == 0 ||
-              strcmp(name, "terminal-font") == 0 ||
-              strcmp(name, "font") == 0) {
-        copy_text(config->terminal_font, (int)sizeof(config->terminal_font),
-                  value);
-    } else if(strcmp(name, "terminal_foreground") == 0 ||
-              strcmp(name, "terminal-foreground") == 0 ||
-              strcmp(name, "foreground") == 0) {
-        int color;
-
-        if(parse_color_value(value, &color))
-            config->terminal_foreground = color;
-    } else if(strcmp(name, "terminal_background") == 0 ||
-              strcmp(name, "terminal-background") == 0 ||
-              strcmp(name, "background") == 0) {
-        int color;
-
-        if(parse_color_value(value, &color))
-            config->terminal_background = color;
-    }
+    (void)ApplyTerminalPaneProfileSetting(config, config_profile_limits(), name,
+                                          value);
 }
 
 void config_load(Config *config)
@@ -227,13 +142,14 @@ void config_load(Config *config)
         if(equals == NULL)
             continue;
         *equals = '\0';
-        name = line;
-        value = equals + 1;
-        while(*name == ' ' || *name == '\t')
-            name++;
-        while(*value == ' ' || *value == '\t')
-            value++;
-        config_apply_arg(config, name, value);
+        name = trim_spaces(line);
+        value = trim_spaces(equals + 1);
+        if(name != NULL && value != NULL) {
+            char decoded[2048];
+
+            UnescapeTerminalPaneText(decoded, (int)sizeof(decoded), value);
+            config_apply_arg(config, name, decoded);
+        }
     }
     fclose(file);
 }
@@ -250,19 +166,20 @@ int config_save(const Config *config)
     if(file == NULL)
         return 0;
     fprintf(file, "font_size=%d\n", config->font_size);
-    fprintf(file, "padding=%d\n", config->padding);
     fprintf(file, "scrollback=%d\n", config->scrollback_limit);
-    fprintf(file, "cursor_style=%s\n", cursor_style_name(config->cursor_style));
-    if(config->shell[0] != '\0')
-        fprintf(file, "shell=%s\n", config->shell);
-    if(config->working_directory[0] != '\0')
-        fprintf(file, "working_directory=%s\n", config->working_directory);
-    if(config->command[0] != '\0')
-        fprintf(file, "command=%s\n", config->command);
-    if(config->terminal_font[0] != '\0')
-        fprintf(file, "terminal_font=%s\n", config->terminal_font);
+    fprintf(file, "cursor_style=%s\n",
+            TerminalPaneCursorStyleName(config->cursor_style));
+    write_setting(file, "shell", config->shell);
+    write_setting(file, "working_directory", config->working_directory);
+    write_setting(file, "command", config->command);
+    write_setting(file, "terminal_font", config->terminal_font);
     write_color(file, "terminal_foreground", config->terminal_foreground);
     write_color(file, "terminal_background", config->terminal_background);
+    write_color(file, "terminal_cursor", config->terminal_cursor);
+    write_color(file, "terminal_selection_foreground",
+                config->terminal_selection_foreground);
+    write_color(file, "terminal_selection_background",
+                config->terminal_selection_background);
     fclose(file);
     return 1;
 }
