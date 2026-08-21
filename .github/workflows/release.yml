@@ -35,6 +35,7 @@ jobs:
         with:
           repository: kryonlabs/kryon
           path: ${{ env.KRYON_CHECKOUT_DIR }}
+          submodules: recursive
 
       - name: Install build dependencies
         run: |
