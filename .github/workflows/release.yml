@@ -17,7 +17,7 @@ permissions:
 
 env:
   KAPSULE_DIR: kapsule
-  KRYON_DIR: kryon
+  KRYON_CHECKOUT_DIR: kryon
 
 jobs:
   linux-build:
@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: kryonlabs/kryon
-          path: ${{ env.KRYON_DIR }}
+          path: ${{ env.KRYON_CHECKOUT_DIR }}
 
       - name: Install build dependencies
         run: |
@@ -57,19 +57,19 @@ jobs:
             zlib1g-dev
 
       - name: Build Kryon
-        working-directory: ${{ env.KRYON_DIR }}
+        working-directory: ${{ env.KRYON_CHECKOUT_DIR }}
         run: make all
 
       - name: Test Kapsule
         working-directory: ${{ env.KAPSULE_DIR }}
         env:
-          ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_DIR }}
+          ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_CHECKOUT_DIR }}
         run: make ENGINE_DIR="${ENGINE_DIR}" test
 
       - name: Build Kapsule
         working-directory: ${{ env.KAPSULE_DIR }}
         env:
-          ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_DIR }}
+          ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_CHECKOUT_DIR }}
         run: make ENGINE_DIR="${ENGINE_DIR}" all
 
       - name: Package Linux binary
