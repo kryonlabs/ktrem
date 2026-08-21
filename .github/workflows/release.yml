@@ -18,7 +18,6 @@ permissions:
 env:
   KAPSULE_DIR: kapsule
   KRYON_DIR: kryon
-  ENGINE_DIR: ${{ github.workspace }}/kryon
 
 jobs:
   linux-build:
@@ -63,10 +62,14 @@ jobs:
 
       - name: Test Kapsule
         working-directory: ${{ env.KAPSULE_DIR }}
+        env:
+          ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_DIR }}
         run: make ENGINE_DIR="${ENGINE_DIR}" test
 
       - name: Build Kapsule
         working-directory: ${{ env.KAPSULE_DIR }}
+        env:
+          ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_DIR }}
         run: make ENGINE_DIR="${ENGINE_DIR}" all
 
       - name: Package Linux binary
