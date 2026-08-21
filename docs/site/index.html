@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kapsule - Kryon terminal</title>
+  <meta name="description" content="Kapsule is a fast Kryon-built terminal aiming to be a practical xfce4-terminal alternative with tabs, search, glyph coverage, launch compatibility, and measured benchmarks.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kapsule.kryonlabs.com/">
+  <meta property="og:title" content="Kapsule - Kryon terminal">
+  <meta property="og:description" content="A fast Kryon-built terminal with xfce4-terminal compatibility goals, measured benchmarks, and a public parity plan.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://kapsule.kryonlabs.com/">
+  <meta name="twitter:title" content="Kapsule - Kryon terminal">
+  <meta name="twitter:description" content="A fast Kryon-built terminal with tabs, search, launch compatibility, and measured benchmark data.">
+  <meta name="theme-color" content="#f3f1ea">
+  <meta name="keywords" content="Kapsule,Kryon,Kryon Labs,terminal,xfce4-terminal,terminal emulator,Linux terminal,benchmarks">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Kapsule",
+    "description": "A fast Kryon-built terminal aiming to be a practical xfce4-terminal alternative.",
+    "url": "https://kapsule.kryonlabs.com",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Linux",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+    "author": {"@type": "Organization", "name": "Kryon Labs", "url": "https://kryonlabs.com"}
+  }
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="#top" aria-label="Kapsule home">
+        <img src="favicon.svg" alt="" width="24" height="24">
+        <span>KAPSULE</span>
+      </a>
+      <button class="menu-toggle" type="button" aria-label="Open site menu" aria-expanded="false" aria-controls="header-nav">Menu</button>
+      <nav class="header-nav" id="header-nav" aria-label="Primary">
+        <a href="#benchmarks">Benchmarks</a>
+        <a href="#parity">Parity</a>
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#roadmap">Roadmap</a>
+        <a class="is-external" href="https://kryonlabs.com">Kryon</a>
+        <a class="btn btn-primary" href="#install">Get Kapsule</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-inner">
+        <span class="hero-eyebrow"><span class="dot"></span>Kryon terminal emulator</span>
+        <img class="hero-icon" src="favicon.svg" width="84" height="84" alt="Kapsule">
+        <h1>Kapsule</h1>
+        <p class="hero-sub">A Kryon-built terminal for Linux desktops. The target is simple: become a practical xfce4-terminal alternative with fast output, familiar tabs, rich terminal compatibility, and honest public benchmarks.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#benchmarks">View benchmarks</a>
+          <a class="btn" href="#parity">Parity matrix</a>
+          <a class="btn" href="#install">Build locally</a>
+        </div>
+      </div>
+
+      <figure class="hero-terminal" aria-label="Kapsule terminal preview">
+        <div class="window-bar">
+          <span class="traffic"></span><span class="traffic"></span><span class="traffic"></span>
+          <span class="window-title">kapsule - benchmarks</span>
+        </div>
+        <div class="tabs">
+          <span class="tab is-active">1: shell</span>
+          <span class="tab">2: build</span>
+          <span class="tab">3: logs</span>
+        </div>
+        <pre><code><span class="prompt">$</span> kapsule -x make test --tab
+ok terminal
+
+<span class="prompt">$</span> make benchmark-parser
+ansi_flood        27 ms
+unicode_table      7 ms
+dense_sgr         13 ms
+resize_reflow    739 ms
+
+Alt+1..Alt+8 switch tabs directly.</code></pre>
+      </figure>
+    </section>
+
+    <section class="status-strip" aria-label="Current status">
+      <div>
+        <strong>Faster on current GUI suite</strong>
+        <span>Kapsule beats xfce4-terminal average time in every measured synthetic output workload.</span>
+      </div>
+      <div>
+        <strong>External workflows measured</strong>
+        <span>Kapsule averages 158.7 ms on live resize, 206.3 ms on clipboard paste, and 613.0 ms on find workflow under Xvfb.</span>
+      </div>
+      <div>
+        <strong>Built on Kryon</strong>
+        <span>The terminal app lives in Kapsule; reusable runtime work stays in Kryon.</span>
+      </div>
+    </section>
+
+    <section id="benchmarks">
+      <p class="section-eyebrow">Benchmarks</p>
+      <h2>Measured against xfce4-terminal</h2>
+      <p class="section-lead">The GUI suite runs both terminals inside Xvfb so it does not interrupt the active desktop. Results are averaged across three isolated runs with <code>KAPSULE_ACTIVE_FPS=1000</code> and <code>KAPSULE_PTY_BURST_MS=8</code>. The clipboard and find workloads send the same held shortcuts to both terminals.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Workload</th>
+              <th>Kapsule avg</th>
+              <th>xfce4-terminal avg</th>
+              <th>State</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Startup payload</td><td>0.0 ms</td><td>1.7 ms</td><td><span class="badge">matched</span></td></tr>
+            <tr><td>ANSI flood, 18k lines</td><td>81.7 ms</td><td>187.0 ms</td><td><span class="badge good">faster</span></td></tr>
+            <tr><td>Unicode table, 6k lines</td><td>18.0 ms</td><td>93.0 ms</td><td><span class="badge good">faster</span></td></tr>
+            <tr><td>Alternate-screen redraw</td><td>22.3 ms</td><td>61.0 ms</td><td><span class="badge good">faster</span></td></tr>
+            <tr><td>Dense SGR styling</td><td>84.0 ms</td><td>91.3 ms</td><td><span class="badge good">faster avg</span></td></tr>
+            <tr><td>Long wrapped output</td><td>42.7 ms</td><td>114.0 ms</td><td><span class="badge good">faster</span></td></tr>
+            <tr><td>Scrollback flood</td><td>86.7 ms</td><td>107.7 ms</td><td><span class="badge good">faster</span></td></tr>
+            <tr><td>Cursor matrix updates</td><td>72.7 ms</td><td>124.3 ms</td><td><span class="badge good">faster</span></td></tr>
+            <tr><td>External clipboard paste</td><td>206.3 ms</td><td>256.7 ms</td><td><span class="badge good">faster</span></td></tr>
+            <tr><td>External find dialog</td><td>613.0 ms</td><td>635.7 ms</td><td><span class="badge good">faster avg</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="metric-grid">
+        <article class="metric">
+          <span class="metric-label">Paste-like burst</span>
+          <strong>69.3 ms</strong>
+          <p>xfce4-terminal measured 154.7 ms on the same synthetic workload.</p>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Hyperlink grid</span>
+          <strong>76.7 ms</strong>
+          <p>OSC 8 link-heavy output, compared with xfce4-terminal at 276.7 ms.</p>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Resize replay</span>
+          <strong>739 ms</strong>
+          <p>Parser-only repeated reflow improved from 2393 ms after streaming reflow work.</p>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Live resize</span>
+          <strong>158.7 ms</strong>
+          <p>120 external X window resizes under Xvfb; xfce4-terminal averaged 177.3 ms.</p>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Clipboard paste</span>
+          <strong>206.3 ms</strong>
+          <p>29-line X clipboard payload pasted with Ctrl+Shift+V into a raw-mode target; xfce4-terminal averaged 256.7 ms.</p>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Find workflow</span>
+          <strong>613.0 ms</strong>
+          <p>Ctrl+Shift+F over an 18k-line corpus, submit, close, and return to PTY input; xfce4-terminal averaged 635.7 ms.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="parity">
+      <p class="section-eyebrow">Parity</p>
+      <h2>Close, but not declared done</h2>
+      <p class="section-lead">Kapsule is already competitive on synthetic throughput and has a large terminal-compatibility surface. The remaining work is about server/drop-down behavior, packaging, and broader real-desktop validation.</p>
+      <div class="parity-grid">
+        <article class="parity-card">
+          <h3>Implemented</h3>
+          <ul>
+            <li>Tabs with <code>Alt+1</code> through <code>Alt+8</code> direct switching.</li>
+            <li>Search across scrollback and visible terminal content.</li>
+            <li>Copy, paste, primary selection, bracketed paste, and OSC 52 clipboard handling.</li>
+            <li>OSC 8 hyperlinks with Ctrl-click opening.</li>
+            <li>Profiles, font path, font size, colors, scrollback, cursor style, and session restore.</li>
+            <li>Sixel images, mouse reporting, alternate screen, xterm title/color controls, and XTGETTCAP reports.</li>
+          </ul>
+        </article>
+        <article class="parity-card">
+          <h3>Xfce launch coverage</h3>
+          <ul>
+            <li><code>--command</code>, <code>-e</code>, <code>--execute</code>, and <code>-x</code>.</li>
+            <li><code>--working-directory</code>, <code>--default-working-directory</code>, <code>--title</code>, and <code>--geometry</code>.</li>
+            <li><code>--fullscreen</code>, <code>--maximize</code>, <code>--drop-down</code>, and border visibility flags.</li>
+            <li><code>--tab</code> multi-spec launch up to the current 8-tab session limit.</li>
+          </ul>
+        </article>
+        <article class="parity-card">
+          <h3>Remaining before a full alternative claim</h3>
+          <ul>
+            <li>Broader workflow validation beyond the current Xvfb benchmark suite.</li>
+            <li>Broader live-resize validation across real desktop window managers.</li>
+            <li>Real multi-window launch and single-instance command server behavior.</li>
+            <li>Repeated-invocation drop-down visibility toggle.</li>
+            <li>Fontconfig-backed fallback for missing glyphs beyond static fallback paths.</li>
+            <li>Desktop file, icon packaging, release assets, and terminfo decision.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="features">
+      <p class="section-eyebrow">Features</p>
+      <h2>Built for real terminal work</h2>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <h3>Fast output path</h3>
+          <p>PTY output uses an adaptive active-output cadence and bounded drain burst to keep heavy shell output moving without locking the idle UI to a high frame rate.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Familiar keyboard model</h3>
+          <p>Tab navigation, copy/paste, find, zoom, page scrolling, and direct tab switching follow the shortcuts terminal users expect.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Terminal compatibility</h3>
+          <p>SGR styling, alternate screen, mouse modes, focus reporting, sixel, xterm OSC controls, modifyOtherKeys, and DEC private reports are covered in the parser.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Kryon integration</h3>
+          <p>The app uses Kryon for windowing, rendering, input, system theme integration, and platform hooks while keeping terminal-specific behavior in Kapsule.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="install" class="callout">
+      <div class="callout-inner">
+        <p class="section-eyebrow">Install</p>
+        <h2>Build Kapsule locally</h2>
+        <p>Kapsule currently builds from source against a neighboring Kryon checkout. Install commands and package links will move here as release assets become available.</p>
+<pre><code>git clone https://github.com/kryonlabs/kryon.git
+git clone https://github.com/kryonlabs/kapsule.git
+cd kapsule
+make
+make test
+make install</code></pre>
+      </div>
+    </section>
+
+    <section id="roadmap">
+      <p class="section-eyebrow">Roadmap</p>
+      <h2>Remaining engineering plan</h2>
+      <div class="steps">
+        <div class="step"><span class="step-num">1</span><div><h3>Broaden benchmark coverage</h3><p>Add longer real-desktop workflow runs beside the existing output, clipboard paste, find, and live-resize Xvfb suites.</p></div></div>
+        <div class="step"><span class="step-num">2</span><div><h3>Close launch/server parity</h3><p>Add real separate windows, single-instance command routing, and drop-down toggle behavior.</p></div></div>
+        <div class="step"><span class="step-num">3</span><div><h3>Fix missing glyphs completely</h3><p>Add fontconfig fallback so box drawing, Powerline, CJK, symbols, Greek, and Cyrillic can resolve from installed system fonts.</p></div></div>
+        <div class="step"><span class="step-num">4</span><div><h3>Move renderer work into Kryon where reusable</h3><p>Keep Kapsule logic in Kapsule, but add reusable Kryon primitives for a retained GPU terminal-grid renderer when the design is proven.</p></div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 Kryon Labs - <a href="https://kryonlabs.com">Kryon</a> - <a href="https://github.com/kryonlabs/kapsule">GitHub</a></p>
+  </footer>
+
+  <script>
+    var button = document.querySelector(".menu-toggle");
+    var nav = document.querySelector("#header-nav");
+    if (button && nav) {
+      button.addEventListener("click", function () {
+        var open = button.getAttribute("aria-expanded") === "true";
+        button.setAttribute("aria-expanded", open ? "false" : "true");
+        nav.classList.toggle("is-open", !open);
+      });
+    }
+  </script>
+</body>
+</html>

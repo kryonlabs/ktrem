@@ -605,6 +605,22 @@ static void feed_byte(TerminalState *terminal, unsigned char byte)
         ResetTerminalPaneDCSBuffer(&terminal->dcs);
         return;
     }
+    if(terminal->utf8_remaining > 0) {
+        if((byte & 0xc0) == 0x80) {
+            terminal->utf8_codepoint =
+                (terminal->utf8_codepoint << 6) | (byte & 0x3f);
+            terminal->utf8_remaining--;
+            if(terminal->utf8_remaining == 0) {
+                feed_codepoint(terminal,
+                               (unsigned int)terminal->utf8_codepoint);
+                terminal->utf8_codepoint = 0;
+            }
+            return;
+        }
+        terminal->utf8_remaining = 0;
+        terminal->utf8_codepoint = 0;
+        feed_codepoint(terminal, '?');
+    }
     if(byte == 0x84) {
         terminal->utf8_remaining = 0;
         terminal->utf8_codepoint = 0;
@@ -671,22 +687,6 @@ static void feed_byte(TerminalState *terminal, unsigned char byte)
             terminal_finish_osc(terminal);
         terminal->parser_state = STATE_TEXT;
         return;
-    }
-    if(terminal->utf8_remaining > 0) {
-        if((byte & 0xc0) == 0x80) {
-            terminal->utf8_codepoint =
-                (terminal->utf8_codepoint << 6) | (byte & 0x3f);
-            terminal->utf8_remaining--;
-            if(terminal->utf8_remaining == 0) {
-                feed_codepoint(terminal,
-                               (unsigned int)terminal->utf8_codepoint);
-                terminal->utf8_codepoint = 0;
-            }
-            return;
-        }
-        terminal->utf8_remaining = 0;
-        terminal->utf8_codepoint = 0;
-        feed_codepoint(terminal, '?');
     }
     if(byte < 0x80) {
         feed_codepoint(terminal, byte);

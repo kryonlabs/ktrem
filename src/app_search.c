@@ -58,6 +58,11 @@ void draw_search_prompt(State *app)
         return;
     ctrl = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
     shift = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
+    if(IsKeyPressed(KEY_ESCAPE)) {
+        app->search_visible = 0;
+        app->search_focused = 0;
+        return;
+    }
     if(ctrl && shift && IsKeyPressed(KEY_G) && app->search_text[0] != '\0') {
         find_scrollback_direction(app, 1);
         app->search_focused = 1;

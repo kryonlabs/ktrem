@@ -1,0 +1,9 @@
+# Kapsule terminal benchmark run 20260820T225726Z
+{"terminal":"kapsule","launch_to_result_ms":1001,"payload":{"workload":"startup","elapsed_ms":0,"lines":1,"bytes":26}}
+{"terminal":"kapsule","launch_to_result_ms":1001,"payload":{"workload":"ansi_flood","elapsed_ms":710,"lines":18000,"bytes":1422000}}
+{"terminal":"kapsule","launch_to_result_ms":1001,"payload":{"workload":"unicode_table","elapsed_ms":20,"lines":6000,"bytes":456000}}
+{"terminal":"kapsule","launch_to_result_ms":1001,"payload":{"workload":"alternate_redraw","elapsed_ms":344,"lines":5040,"bytes":430000}}
+{"terminal":"xfce4-terminal","launch_to_result_ms":1001,"payload":{"workload":"startup","elapsed_ms":0,"lines":1,"bytes":26}}
+{"terminal":"xfce4-terminal","launch_to_result_ms":1001,"payload":{"workload":"ansi_flood","elapsed_ms":96,"lines":18000,"bytes":1422000}}
+{"terminal":"xfce4-terminal","launch_to_result_ms":1001,"payload":{"workload":"unicode_table","elapsed_ms":39,"lines":6000,"bytes":456000}}
+{"terminal":"xfce4-terminal","launch_to_result_ms":1001,"payload":{"workload":"alternate_redraw","elapsed_ms":31,"lines":5040,"bytes":430000}}

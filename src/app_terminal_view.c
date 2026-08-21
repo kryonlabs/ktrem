@@ -479,6 +479,7 @@ void draw_starting_frame(State *app)
     Rectangle viewport = TerminalPaneContentBounds(bounds, menu_h + tab_h, 0);
     TerminalPaneColors theme_colors = terminal_theme_tokens();
 
+    UseUIFont("kapsule-ui");
     DrawRectangleRec(bounds, app->palette.background);
     draw_app_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
                                        (float)menu_h});

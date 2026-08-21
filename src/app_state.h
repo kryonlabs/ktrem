@@ -2,6 +2,7 @@
 #define KAPSULE_APP_STATE_H
 
 #include "config.h"
+#include "launch_options.h"
 #include "palette.h"
 #include "selection.h"
 #include "session.h"
@@ -12,6 +13,7 @@
 
 typedef struct State {
     Config config;
+    LaunchOptions launch;
     Palette palette;
     Session sessions[MAX_SESSIONS];
     int session_count;
@@ -47,6 +49,8 @@ typedef struct State {
     int context_menu_open;
     int context_menu_x;
     int context_menu_y;
+    int paste_shortcut_down;
+    int copy_shortcut_down;
     int profile_prompt;
     int profile_cursor;
     int profile_focused;

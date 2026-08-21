@@ -1,0 +1,9 @@
+# Kapsule terminal benchmark run 20260821T122119Z
+{"terminal":"kapsule","run":1,"launch_to_result_ms":207,"payload":{"workload":"clipboard_paste","elapsed_ms":207,"lines":29,"bytes":3817}}
+{"terminal":"kapsule","run":2,"launch_to_result_ms":206,"payload":{"workload":"clipboard_paste","elapsed_ms":206,"lines":29,"bytes":3817}}
+{"terminal":"kapsule","run":3,"launch_to_result_ms":206,"payload":{"workload":"clipboard_paste","elapsed_ms":206,"lines":29,"bytes":3817}}
+{"terminal":"xfce4-terminal","run":1,"launch_to_result_ms":256,"payload":{"workload":"clipboard_paste","elapsed_ms":256,"lines":29,"bytes":3824}}
+{"terminal":"xfce4-terminal","run":2,"launch_to_result_ms":257,"payload":{"workload":"clipboard_paste","elapsed_ms":257,"lines":29,"bytes":3824}}
+{"terminal":"xfce4-terminal","run":3,"launch_to_result_ms":257,"payload":{"workload":"clipboard_paste","elapsed_ms":257,"lines":29,"bytes":3824}}
+{"summary":true,"terminal":"xfce4-terminal","workload":"clipboard_paste","runs":3,"min_elapsed_ms":256,"avg_elapsed_ms":256.7,"max_elapsed_ms":257}
+{"summary":true,"terminal":"kapsule","workload":"clipboard_paste","runs":3,"min_elapsed_ms":206,"avg_elapsed_ms":206.3,"max_elapsed_ms":207}

@@ -10,6 +10,11 @@ make run
 make test
 ```
 
+Release builds are covered by `.github/workflows/release.yml`: pull requests
+and pushes run the Linux build/test path, and published GitHub Releases upload
+a `kapsule-linux-x86_64` tarball plus checksum. The remaining feature and
+release-readiness plan is tracked in `docs/REMAINING_FEATURE_PLAN.md`.
+
 By default the build uses `../kryon`. Override with:
 
 ```sh
@@ -20,8 +25,19 @@ Run options:
 
 ```sh
 kapsule --working-directory /path/to/project
+kapsule --default-working-directory /path/to/project
 kapsule --shell /bin/bash
 kapsule --command 'make test'
+kapsule --command='make test'
+kapsule -e 'make test'
+kapsule -x make test
+kapsule --title 'Build'
+kapsule --command 'make test' --tab --title 'Logs' --command 'tail -f build.log'
+kapsule --drop-down --title 'System' --command htop
+kapsule --geometry 120x40
+kapsule --fullscreen
+kapsule --maximize
+kapsule --hold
 kapsule --font-size 18
 kapsule --scrollback 10000
 kapsule --cursor-style bar
@@ -29,6 +45,15 @@ kapsule --terminal-font /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
 kapsule --terminal-foreground '#f2f2f2' --terminal-background '#101010' --terminal-cursor '#f2f2f2'
 kapsule --terminal-selection-foreground '#101010' --terminal-selection-background '#5a8fd8'
 ```
+
+Kapsule accepts common xfce4-terminal launch aliases:
+`--command`/`-e`, `--execute`/`-x`, `--default-working-directory`,
+`--title`/`-T`, `--hold`/`-H`, `--geometry`, `--fullscreen`, `--maximize`,
+`--drop-down`, `--disable-server`, `--tab`, `--window`, and
+menubar/toolbar/border visibility flags. `--tab` starts additional tabs from
+command-line specs. `--drop-down` starts a borderless top-of-screen terminal
+window. `--window` is accepted as a separator and currently opens another tab
+because Kapsule does not have multi-window process/server support yet.
 
 Config is read from `$XDG_CONFIG_HOME/kapsule/config` or
 `~/.config/kapsule/config`:
@@ -73,6 +98,7 @@ Shortcuts:
 - `Ctrl+Tab`: next tab
 - `Ctrl+Shift+Tab`: previous tab
 - `Ctrl+PageUp` / `Ctrl+PageDown`: previous tab, next tab
+- `Alt+1` through `Alt+8`: switch directly to that tab
 - `Ctrl+Shift+C`: copy selection
 - `Ctrl+Shift+V`: paste
 - `Ctrl+Insert` / `Shift+Insert`: copy selection, paste

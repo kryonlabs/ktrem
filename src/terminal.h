@@ -238,6 +238,7 @@ int terminal_send_focus(TerminalState *terminal, int focused);
 TerminalPaneClipboard terminal_clipboard(TerminalState *terminal);
 void terminal_feed(TerminalState *terminal, const void *data, int size);
 int terminal_poll(TerminalState *terminal);
+int terminal_poll_bytes(TerminalState *terminal);
 void terminal_resize(TerminalState *terminal, int cols, int rows);
 void terminal_set_scrollback_limit(TerminalState *terminal, int rows);
 void terminal_close(TerminalState *terminal);

@@ -8,6 +8,8 @@
 #include "selection.h"
 #include "terminal.h"
 
+#include <string.h>
+
 static int max_int(int a, int b)
 {
     return a > b ? a : b;
@@ -275,6 +277,77 @@ static int handle_terminal_mouse(State *app, Session *session, float wheel)
     return consumed;
 }
 
+static int handle_terminal_keyboard_shortcut(void *userdata, const char *text,
+                                             int length)
+{
+    State *app = userdata;
+    int shift = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
+
+    if(app == NULL || text == NULL)
+        return 0;
+    if((length == 6 && memcmp(text, "\x1b[2;2~", 6) == 0) ||
+       (length == 4 && shift && memcmp(text, "\x1b[2~", 4) == 0)) {
+        app_execute_command(app, APP_COMMAND_PASTE);
+        return 1;
+    }
+    if(length == 6 && memcmp(text, "\x1b[2;5~", 6) == 0) {
+        app_execute_command(app, APP_COMMAND_COPY);
+        return 1;
+    }
+    return 0;
+}
+
+static int handle_terminal_key_shortcut(void *userdata, int platform_key,
+                                        int mods)
+{
+    State *app = userdata;
+    int ctrl = (mods & TERMINAL_PANE_MOD_CTRL) != 0;
+    int shift = (mods & TERMINAL_PANE_MOD_SHIFT) != 0;
+
+    if(app == NULL)
+        return 0;
+    if(ctrl && shift && platform_key == KEY_V) {
+        app_execute_command(app, APP_COMMAND_PASTE);
+        return 1;
+    }
+    if((ctrl && shift && platform_key == KEY_C) ||
+       (ctrl && platform_key == KEY_INSERT)) {
+        app_execute_command(app, APP_COMMAND_COPY);
+        return 1;
+    }
+    return 0;
+}
+
+static int handle_down_edge_shortcuts(State *app, int ctrl, int shift)
+{
+    int paste_down;
+    int copy_down;
+
+    if(app == NULL)
+        return 0;
+    paste_down = (shift && IsKeyDown(KEY_INSERT)) ||
+                 (ctrl && shift && IsKeyDown(KEY_V));
+    copy_down = (ctrl && IsKeyDown(KEY_INSERT)) ||
+                (ctrl && shift && IsKeyDown(KEY_C));
+    if(paste_down) {
+        if(!app->paste_shortcut_down)
+            app_execute_command(app, APP_COMMAND_PASTE);
+        app->paste_shortcut_down = 1;
+        app->copy_shortcut_down = copy_down;
+        return 1;
+    }
+    if(copy_down) {
+        if(!app->copy_shortcut_down)
+            app_execute_command(app, APP_COMMAND_COPY);
+        app->copy_shortcut_down = 1;
+        app->paste_shortcut_down = 0;
+        return 1;
+    }
+    app->paste_shortcut_down = 0;
+    app->copy_shortcut_down = 0;
+    return 0;
+}
+
 void app_handle_input(State *app)
 {
     Session *session = active_session(app);
@@ -334,6 +407,8 @@ void app_handle_input(State *app)
         session->scroll_offset = 0;
         app->context_menu_open = 0;
     }
+    if(handle_down_edge_shortcuts(app, ctrl, shift))
+        return;
     if(app_handle_shortcuts(app))
         return;
 
@@ -354,7 +429,9 @@ void app_handle_input(State *app)
                 session->scroll_offset = 0;
             return;
         }
-        input_send_keyboard(&session->terminal);
+        input_send_keyboard_filtered(&session->terminal,
+                                     handle_terminal_key_shortcut,
+                                     handle_terminal_keyboard_shortcut, app);
         if(IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_BACKSPACE) ||
            IsKeyPressed(KEY_TAB))
             session->scroll_offset = 0;

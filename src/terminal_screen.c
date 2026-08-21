@@ -207,12 +207,26 @@ static int reflow_cell_blank(const void *cell, void *userdata)
     return terminal_cell == NULL || terminal_cell->codepoint == ' ';
 }
 
-static void append_reflow_cell(Cell *rows, unsigned char *wrapped, int cols,
-                               int max_rows, int *out_row, int *out_col,
-                               Cell cell)
+static void init_reflow_row(Cell *rows, unsigned char *initialized, int cols,
+                            int max_rows, int row, Cell blank)
 {
-    if(rows == NULL || wrapped == NULL || out_row == NULL || out_col == NULL ||
-       cols <= 0 || max_rows <= 0)
+    int col;
+
+    if(rows == NULL || initialized == NULL || cols <= 0 || row < 0 ||
+       row >= max_rows || initialized[row])
+        return;
+    for(col = 0; col < cols; col++)
+        rows[row * cols + col] = blank;
+    initialized[row] = 1;
+}
+
+static void append_reflow_cell(Cell *rows, unsigned char *wrapped,
+                               unsigned char *initialized, int cols,
+                               int max_rows, int *out_row, int *out_col,
+                               Cell blank, Cell cell)
+{
+    if(rows == NULL || wrapped == NULL || initialized == NULL ||
+       out_row == NULL || out_col == NULL || cols <= 0 || max_rows <= 0)
         return;
     if(*out_col >= cols) {
         if(*out_row >= 0 && *out_row < max_rows)
@@ -222,16 +236,21 @@ static void append_reflow_cell(Cell *rows, unsigned char *wrapped, int cols,
     }
     if(*out_row >= max_rows)
         return;
+    init_reflow_row(rows, initialized, cols, max_rows, *out_row, blank);
     rows[*out_row * cols + *out_col] = cell;
     (*out_col)++;
 }
 
-static void finish_reflow_line(int *out_row, int *out_col, int max_rows)
+static void finish_reflow_line(Cell *rows, unsigned char *initialized,
+                               int cols, int max_rows, int *out_row,
+                               int *out_col, Cell blank)
 {
     if(out_row == NULL || out_col == NULL)
         return;
-    if(*out_row < max_rows)
+    if(*out_row < max_rows) {
+        init_reflow_row(rows, initialized, cols, max_rows, *out_row, blank);
         (*out_row)++;
+    }
     *out_col = 0;
 }
 
@@ -349,6 +368,8 @@ static void reflow_scrollback(TerminalState *terminal, const Cell *old_cells,
 {
     Cell *lines;
     unsigned char *wrapped;
+    unsigned char *initialized;
+    Cell blank;
     int max_lines;
     int out_row = 0;
     int out_col = 0;
@@ -362,19 +383,16 @@ static void reflow_scrollback(TerminalState *terminal, const Cell *old_cells,
         old_count * ((old_cols + terminal->cols - 1) / terminal->cols + 2);
     if(max_lines < old_count)
         max_lines = old_count;
-    lines = calloc((size_t)max_lines * (size_t)terminal->cols, sizeof(Cell));
+    blank = terminal_blank_cell(terminal);
+    lines = malloc((size_t)max_lines * (size_t)terminal->cols *
+                   sizeof(Cell));
     wrapped = calloc((size_t)max_lines, 1);
-    if(lines == NULL || wrapped == NULL) {
+    initialized = calloc((size_t)max_lines, 1);
+    if(lines == NULL || wrapped == NULL || initialized == NULL) {
         free(lines);
         free(wrapped);
+        free(initialized);
         return;
-    }
-    for(row = 0; row < max_lines; row++) {
-        int col;
-        Cell blank = terminal_blank_cell(terminal);
-
-        for(col = 0; col < terminal->cols; col++)
-            lines[row * terminal->cols + col] = blank;
     }
     for(index = 0; index < old_count; index++) {
         int physical =
@@ -384,19 +402,167 @@ static void reflow_scrollback(TerminalState *terminal, const Cell *old_cells,
         int col;
 
         for(col = 0; col < end; col++)
-            append_reflow_cell(lines, wrapped, terminal->cols, max_lines,
-                               &out_row, &out_col,
+            append_reflow_cell(lines, wrapped, initialized, terminal->cols,
+                               max_lines, &out_row, &out_col, blank,
                                old_cells[physical * old_cols + col]);
         if(!soft)
-            finish_reflow_line(&out_row, &out_col, max_lines);
+            finish_reflow_line(lines, initialized, terminal->cols, max_lines,
+                               &out_row, &out_col, blank);
     }
     if(out_col > 0)
-        finish_reflow_line(&out_row, &out_col, max_lines);
+        finish_reflow_line(lines, initialized, terminal->cols, max_lines,
+                           &out_row, &out_col, blank);
     for(row = 0; row < out_row; row++)
         terminal_append_scrollback(terminal, lines + row * terminal->cols,
                                    wrapped[row]);
     free(lines);
     free(wrapped);
+    free(initialized);
+}
+
+typedef struct ReflowStream {
+    TerminalState *terminal;
+    Cell blank;
+    Cell *current;
+    Cell *recent;
+    unsigned char *recent_wrapped;
+    int current_col;
+    int current_wrapped;
+    int total_rows;
+    int failed;
+} ReflowStream;
+
+static void reflow_stream_blank_current(ReflowStream *stream)
+{
+    int col;
+
+    if(stream == NULL || stream->current == NULL || stream->terminal == NULL)
+        return;
+    for(col = 0; col < stream->terminal->cols; col++)
+        stream->current[col] = stream->blank;
+    stream->current_col = 0;
+    stream->current_wrapped = 0;
+}
+
+static int reflow_stream_init(ReflowStream *stream, TerminalState *terminal)
+{
+    if(stream == NULL || terminal == NULL || terminal->cols <= 0 ||
+       terminal->rows <= 0)
+        return 0;
+    memset(stream, 0, sizeof(*stream));
+    stream->terminal = terminal;
+    stream->blank = terminal_blank_cell(terminal);
+    stream->current = malloc((size_t)terminal->cols * sizeof(Cell));
+    stream->recent = malloc((size_t)terminal->rows * (size_t)terminal->cols *
+                            sizeof(Cell));
+    stream->recent_wrapped = calloc((size_t)terminal->rows, 1);
+    if(stream->current == NULL || stream->recent == NULL ||
+       stream->recent_wrapped == NULL) {
+        free(stream->current);
+        free(stream->recent);
+        free(stream->recent_wrapped);
+        memset(stream, 0, sizeof(*stream));
+        return 0;
+    }
+    reflow_stream_blank_current(stream);
+    return 1;
+}
+
+static void reflow_stream_close(ReflowStream *stream)
+{
+    if(stream == NULL)
+        return;
+    free(stream->current);
+    free(stream->recent);
+    free(stream->recent_wrapped);
+    memset(stream, 0, sizeof(*stream));
+}
+
+static void reflow_stream_emit(ReflowStream *stream)
+{
+    int slot;
+
+    if(stream == NULL || stream->terminal == NULL || stream->failed)
+        return;
+    if(stream->total_rows >= stream->terminal->rows) {
+        slot = stream->total_rows % stream->terminal->rows;
+        terminal_append_scrollback(
+            stream->terminal,
+            stream->recent + slot * stream->terminal->cols,
+            stream->recent_wrapped[slot]);
+    } else {
+        slot = stream->total_rows;
+    }
+    memcpy(stream->recent + slot * stream->terminal->cols, stream->current,
+           (size_t)stream->terminal->cols * sizeof(Cell));
+    stream->recent_wrapped[slot] = stream->current_wrapped ? 1 : 0;
+    stream->total_rows++;
+    reflow_stream_blank_current(stream);
+}
+
+static void reflow_stream_append_cell(ReflowStream *stream, Cell cell)
+{
+    if(stream == NULL || stream->terminal == NULL || stream->failed)
+        return;
+    if(stream->current_col >= stream->terminal->cols) {
+        stream->current_wrapped = 1;
+        reflow_stream_emit(stream);
+    }
+    if(stream->current_col < stream->terminal->cols)
+        stream->current[stream->current_col++] = cell;
+}
+
+static void reflow_stream_finish_line(ReflowStream *stream)
+{
+    reflow_stream_emit(stream);
+}
+
+static void reflow_stream_flush_partial(ReflowStream *stream)
+{
+    if(stream != NULL && stream->current_col > 0)
+        reflow_stream_emit(stream);
+}
+
+static int reflow_stream_copy_main(ReflowStream *stream, int cursor_row,
+                                   int cursor_col, int old_cursor_col,
+                                   int old_cursor_row,
+                                   int *new_cursor_col,
+                                   int *new_cursor_row)
+{
+    TerminalState *terminal;
+    int copy_rows;
+    int start_row;
+    int row;
+
+    if(stream == NULL || stream->terminal == NULL || stream->failed)
+        return 0;
+    terminal = stream->terminal;
+    copy_rows = stream->total_rows < terminal->rows ? stream->total_rows
+                                                    : terminal->rows;
+    start_row = stream->total_rows - copy_rows;
+    for(row = 0; row < copy_rows; row++) {
+        int slot = (start_row + row) % terminal->rows;
+
+        memcpy(terminal->main_cells + row * terminal->cols,
+               stream->recent + slot * terminal->cols,
+               (size_t)terminal->cols * sizeof(Cell));
+        terminal->main_wrapped[row] = stream->recent_wrapped[slot];
+    }
+    if(cursor_row >= start_row && cursor_row < start_row + copy_rows) {
+        if(new_cursor_row != NULL)
+            *new_cursor_row = cursor_row - start_row;
+        if(new_cursor_col != NULL)
+            *new_cursor_col = terminal_clamp_int(cursor_col, 0,
+                                                 terminal->cols - 1);
+    } else {
+        if(new_cursor_row != NULL)
+            *new_cursor_row =
+                terminal_clamp_int(old_cursor_row, 0, terminal->rows - 1);
+        if(new_cursor_col != NULL)
+            *new_cursor_col =
+                terminal_clamp_int(old_cursor_col, 0, terminal->cols - 1);
+    }
+    return 1;
 }
 
 static int reflow_scrollback_and_main(
@@ -407,18 +573,12 @@ static int reflow_scrollback_and_main(
     const unsigned char *old_main_wrapped, int old_rows, int old_cursor_col,
     int old_cursor_row, int *new_cursor_col, int *new_cursor_row)
 {
-    Cell *lines;
-    unsigned char *wrapped;
-    int source_rows;
-    int max_lines;
-    int out_row = 0;
-    int out_col = 0;
+    ReflowStream stream;
     int cursor_row = -1;
     int cursor_col = -1;
     int row;
     int input_rows;
-    int start_main;
-    int copy_rows;
+    int ok;
 
     if(terminal == NULL || old_scrollback == NULL || old_main == NULL ||
        old_cols <= 0 || old_rows <= 0 || old_scrollback_count <= 0 ||
@@ -432,25 +592,8 @@ static int reflow_scrollback_and_main(
             break;
         input_rows--;
     }
-    source_rows = old_scrollback_count + input_rows;
-    max_lines =
-        source_rows * ((old_cols + terminal->cols - 1) / terminal->cols + 2);
-    if(max_lines < terminal->rows)
-        max_lines = terminal->rows;
-    lines = calloc((size_t)max_lines * (size_t)terminal->cols, sizeof(Cell));
-    wrapped = calloc((size_t)max_lines, 1);
-    if(lines == NULL || wrapped == NULL) {
-        free(lines);
-        free(wrapped);
+    if(!reflow_stream_init(&stream, terminal))
         return 0;
-    }
-    for(row = 0; row < max_lines; row++) {
-        int col;
-        Cell blank = terminal_blank_cell(terminal);
-
-        for(col = 0; col < terminal->cols; col++)
-            lines[row * terminal->cols + col] = blank;
-    }
     for(row = 0; row < old_scrollback_count; row++) {
         int physical = (old_scrollback_head - old_scrollback_count + row +
                         old_scrollback_capacity) %
@@ -461,11 +604,10 @@ static int reflow_scrollback_and_main(
         int col;
 
         for(col = 0; col < end; col++)
-            append_reflow_cell(lines, wrapped, terminal->cols, max_lines,
-                               &out_row, &out_col,
-                               old_scrollback[physical * old_cols + col]);
+            reflow_stream_append_cell(
+                &stream, old_scrollback[physical * old_cols + col]);
         if(!soft)
-            finish_reflow_line(&out_row, &out_col, max_lines);
+            reflow_stream_finish_line(&stream);
     }
     for(row = 0; row < input_rows; row++) {
         int soft = old_main_wrapped != NULL && old_main_wrapped[row];
@@ -474,16 +616,15 @@ static int reflow_scrollback_and_main(
 
         for(col = 0; col < end; col++) {
             if(row == old_cursor_row && col == old_cursor_col) {
-                cursor_row = out_row;
-                cursor_col = out_col;
+                cursor_row = stream.total_rows;
+                cursor_col = stream.current_col;
             }
-            append_reflow_cell(lines, wrapped, terminal->cols, max_lines,
-                               &out_row, &out_col,
-                               old_main[row * old_cols + col]);
+            reflow_stream_append_cell(&stream,
+                                      old_main[row * old_cols + col]);
         }
         if(row == old_cursor_row && cursor_row < 0) {
-            cursor_row = out_row;
-            cursor_col = out_col +
+            cursor_row = stream.total_rows;
+            cursor_col = stream.current_col +
                          (old_cursor_col > end ? old_cursor_col - end : 0);
             while(cursor_col >= terminal->cols) {
                 cursor_row++;
@@ -491,38 +632,14 @@ static int reflow_scrollback_and_main(
             }
         }
         if(!soft)
-            finish_reflow_line(&out_row, &out_col, max_lines);
+            reflow_stream_finish_line(&stream);
     }
-    if(out_col > 0)
-        finish_reflow_line(&out_row, &out_col, max_lines);
-    start_main = out_row > terminal->rows ? out_row - terminal->rows : 0;
-    for(row = 0; row < start_main; row++)
-        terminal_append_scrollback(terminal, lines + row * terminal->cols,
-                                   wrapped[row]);
-    copy_rows = out_row - start_main;
-    if(copy_rows > terminal->rows)
-        copy_rows = terminal->rows;
-    if(copy_rows > 0) {
-        memcpy(terminal->main_cells, lines + start_main * terminal->cols,
-               (size_t)copy_rows * (size_t)terminal->cols * sizeof(Cell));
-        memcpy(terminal->main_wrapped, wrapped + start_main,
-               (size_t)copy_rows);
-    }
-    if(cursor_row >= start_main && cursor_row < start_main + copy_rows) {
-        if(new_cursor_row != NULL)
-            *new_cursor_row = cursor_row - start_main;
-        if(new_cursor_col != NULL)
-            *new_cursor_col = cursor_col;
-    } else {
-        if(new_cursor_row != NULL)
-            *new_cursor_row =
-                terminal_clamp_int(old_cursor_row, 0, terminal->rows - 1);
-        if(new_cursor_col != NULL)
-            *new_cursor_col = old_cursor_col;
-    }
-    free(lines);
-    free(wrapped);
-    return 1;
+    reflow_stream_flush_partial(&stream);
+    ok = reflow_stream_copy_main(&stream, cursor_row, cursor_col,
+                                 old_cursor_col, old_cursor_row,
+                                 new_cursor_col, new_cursor_row);
+    reflow_stream_close(&stream);
+    return ok;
 }
 
 int terminal_allocate_screen(TerminalState *terminal, int cols, int rows)

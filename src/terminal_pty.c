@@ -24,6 +24,37 @@
 #include <termios.h>
 #include <unistd.h>
 
+static int wait_for_child_exit(int pid, int timeout_ms)
+{
+    int elapsed = 0;
+    int status;
+
+    if(pid <= 0)
+        return 1;
+    for(;;) {
+        int result = waitpid(pid, &status, WNOHANG);
+
+        if(result > 0 || (result < 0 && errno == ECHILD))
+            return 1;
+        if(result < 0 && errno == EINTR)
+            continue;
+        if(result < 0)
+            return 1;
+        if(elapsed >= timeout_ms)
+            return 0;
+        usleep(10000);
+        elapsed += 10;
+    }
+}
+
+static void signal_terminal_process_group(int pid, int signal_number)
+{
+    if(pid <= 0)
+        return;
+    if(kill(-pid, signal_number) != 0)
+        kill(pid, signal_number);
+}
+
 static void set_window_size(int fd, int cols, int rows)
 {
     struct winsize size;
@@ -131,10 +162,12 @@ int terminal_write_text(TerminalState *terminal, const char *text)
     return terminal_write(terminal, text, (int)strlen(text));
 }
 
-int terminal_poll(TerminalState *terminal)
+int terminal_poll_bytes(TerminalState *terminal)
 {
     char buffer[4096];
     int status;
+    int closed = 0;
+    int bytes = 0;
 
     if(terminal == NULL || terminal->fd < 0)
         return 0;
@@ -146,16 +179,34 @@ int terminal_poll(TerminalState *terminal)
                 continue;
             if(errno == EAGAIN || errno == EWOULDBLOCK)
                 break;
+            if(errno == EIO)
+                closed = 1;
             break;
         }
-        if(got == 0)
+        if(got == 0) {
+            closed = 1;
             break;
+        }
         terminal_feed(terminal, buffer, got);
+        bytes += got;
     }
     if(terminal->running && terminal->pid > 0) {
         if(waitpid(terminal->pid, &status, WNOHANG) > 0)
             terminal->running = 0;
     }
+    if(closed && terminal->fd >= 0) {
+        close(terminal->fd);
+        terminal->fd = -1;
+        terminal->running = 0;
+    }
+    return bytes;
+}
+
+int terminal_poll(TerminalState *terminal)
+{
+    if(terminal == NULL)
+        return 0;
+    terminal_poll_bytes(terminal);
     return terminal->running;
 }
 
@@ -190,18 +241,22 @@ void terminal_set_scrollback_limit(TerminalState *terminal, int rows)
 
 void terminal_close(TerminalState *terminal)
 {
-    int status;
-
     if(terminal == NULL)
         return;
-    if(terminal->running && terminal->pid > 0) {
-        kill(terminal->pid, SIGHUP);
-        kill(terminal->pid, SIGTERM);
-        while(waitpid(terminal->pid, &status, 0) < 0 && errno == EINTR)
-            ;
-    }
-    if(terminal->fd >= 0)
+    if(terminal->fd >= 0) {
         close(terminal->fd);
+        terminal->fd = -1;
+    }
+    if(terminal->running && terminal->pid > 0) {
+        signal_terminal_process_group(terminal->pid, SIGHUP);
+        signal_terminal_process_group(terminal->pid, SIGTERM);
+        if(!wait_for_child_exit(terminal->pid, 200)) {
+            signal_terminal_process_group(terminal->pid, SIGKILL);
+            (void)wait_for_child_exit(terminal->pid, 500);
+        }
+    } else if(terminal->pid > 0) {
+        (void)waitpid(terminal->pid, NULL, WNOHANG);
+    }
     free(terminal->main_cells);
     free(terminal->alt_cells);
     free(terminal->scrollback);

@@ -28,6 +28,29 @@ static void set_font_size(State *app, int font_size)
     config_save(&app->config);
 }
 
+static int handle_alt_tab_shortcut(State *app)
+{
+    static const int number_keys[MAX_SESSIONS] = {
+        KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR,
+        KEY_FIVE, KEY_SIX, KEY_SEVEN, KEY_EIGHT
+    };
+    static const int keypad_keys[MAX_SESSIONS] = {
+        KEY_KP_1, KEY_KP_2, KEY_KP_3, KEY_KP_4,
+        KEY_KP_5, KEY_KP_6, KEY_KP_7, KEY_KP_8
+    };
+    int i;
+
+    if(app == NULL)
+        return 0;
+    for(i = 0; i < app->session_count && i < MAX_SESSIONS; i++) {
+        if(IsKeyPressed(number_keys[i]) || IsKeyPressed(keypad_keys[i])) {
+            set_active_session(app, i);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void app_execute_command(State *app, int command)
 {
     Session *session = active_session(app);
@@ -141,9 +164,12 @@ int app_handle_shortcuts(State *app)
     Session *session = active_session(app);
     int ctrl = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
     int shift = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
+    int alt = IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT);
 
     if(session == NULL)
         return 0;
+    if(alt && handle_alt_tab_shortcut(app))
+        return 1;
     if(ctrl && shift && IsKeyPressed(KEY_T)) {
         app_execute_command(app, APP_COMMAND_NEW_TAB);
         return 1;

@@ -1,16 +1,19 @@
 #include "kryon.h"
 #include "config.h"
 #include "input.h"
+#include "launch_options.h"
 #include "palette.h"
 #include "profile.h"
 #include "selection.h"
 #include "session.h"
 #include "session_store.h"
 #include "terminal.h"
+#include "terminal_screen.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <unistd.h>
 
 static char test_clipboard[UI_CLIPBOARD_BUFFER_SIZE];
@@ -380,6 +383,232 @@ static int config_save_load_escapes_profile_text(void)
     return ok;
 }
 
+static int launch_options_accept_xfce_aliases(void)
+{
+    Config config;
+    LaunchOptions options;
+    char error[256];
+    char *argv[] = {
+        "kapsule",
+        "--default-working-directory=/tmp/project",
+        "--command=printf ok",
+        "--font-size=20",
+        "--title",
+        "Build",
+        "--geometry=120x40",
+        "--hold",
+        "--maximize",
+        "--hide-menubar",
+        "--show-toolbar",
+        "--hide-borders",
+        "--disable-server"
+    };
+
+    config_defaults(&config);
+    launch_options_defaults(&options);
+    if(launch_options_parse(&options, &config,
+                            (int)(sizeof(argv) / sizeof(argv[0])), argv,
+                            error, (int)sizeof(error)) != LAUNCH_PARSE_OK) {
+        fprintf(stderr, "xfce alias parse failed: %s\n", error);
+        return 0;
+    }
+    if(strcmp(config.working_directory, "/tmp/project") != 0 ||
+       strcmp(config.command, "printf ok") != 0 ||
+       config.font_size != 20 ||
+       strcmp(options.initial_title, "Build") != 0 ||
+       options.geometry_cols != 120 || options.geometry_rows != 40 ||
+       !options.hold || !options.maximize || options.show_menubar ||
+       !options.show_toolbar || options.show_borders) {
+        fprintf(stderr, "xfce alias parse produced wrong state\n");
+        return 0;
+    }
+    return 1;
+}
+
+static int launch_options_execute_quotes_remainder(void)
+{
+    Config config;
+    LaunchOptions options;
+    char error[256];
+    char *argv[] = {
+        "kapsule",
+        "-x",
+        "printf",
+        "a b",
+        "c'd"
+    };
+
+    config_defaults(&config);
+    launch_options_defaults(&options);
+    if(launch_options_parse(&options, &config,
+                            (int)(sizeof(argv) / sizeof(argv[0])), argv,
+                            error, (int)sizeof(error)) != LAUNCH_PARSE_OK) {
+        fprintf(stderr, "execute parse failed: %s\n", error);
+        return 0;
+    }
+    if(strcmp(config.command, "'printf' 'a b' 'c'\\''d'") != 0) {
+        fprintf(stderr, "execute command was not shell quoted: %s\n",
+                config.command);
+        return 0;
+    }
+    return 1;
+}
+
+static int launch_options_reject_bad_geometry(void)
+{
+    Config config;
+    LaunchOptions options;
+    char error[256];
+    char *argv[] = {"kapsule", "--geometry", "wide"};
+
+    config_defaults(&config);
+    launch_options_defaults(&options);
+    if(launch_options_parse(&options, &config,
+                            (int)(sizeof(argv) / sizeof(argv[0])), argv,
+                            error, (int)sizeof(error)) !=
+       LAUNCH_PARSE_ERROR) {
+        fprintf(stderr, "bad geometry was accepted\n");
+        return 0;
+    }
+    return 1;
+}
+
+static int launch_options_accept_drop_down(void)
+{
+    Config config;
+    LaunchOptions options;
+    char error[256];
+    char *argv[] = {
+        "kapsule",
+        "--default-display=:7",
+        "--drop-down",
+        "--tab",
+        "--title",
+        "System",
+        "--command=top"
+    };
+
+    config_defaults(&config);
+    launch_options_defaults(&options);
+    if(launch_options_parse(&options, &config,
+                            (int)(sizeof(argv) / sizeof(argv[0])), argv,
+                            error, (int)sizeof(error)) != LAUNCH_PARSE_OK) {
+        fprintf(stderr, "drop-down parse failed: %s\n", error);
+        return 0;
+    }
+    if(!options.drop_down || options.show_borders ||
+       options.tab_count != 1 ||
+       strcmp(options.tabs[0].title, "System") != 0 ||
+       strcmp(options.tabs[0].command, "top") != 0) {
+        fprintf(stderr, "drop-down parse produced wrong state\n");
+        return 0;
+    }
+    return 1;
+}
+
+static int launch_options_builds_tab_specs(void)
+{
+    Config config;
+    LaunchOptions options;
+    char error[256];
+    char *argv[] = {
+        "kapsule",
+        "--command=make test",
+        "--title",
+        "Build",
+        "--tab",
+        "--default-working-directory",
+        "/tmp/logs",
+        "--title=Logs",
+        "--command=tail -f app.log",
+        "--tab",
+        "-T",
+        "Shell"
+    };
+
+    config_defaults(&config);
+    launch_options_defaults(&options);
+    if(launch_options_parse(&options, &config,
+                            (int)(sizeof(argv) / sizeof(argv[0])), argv,
+                            error, (int)sizeof(error)) != LAUNCH_PARSE_OK) {
+        fprintf(stderr, "tab spec parse failed: %s\n", error);
+        return 0;
+    }
+    if(options.tab_count != 3 ||
+       strcmp(options.tabs[0].title, "Build") != 0 ||
+       strcmp(options.tabs[0].command, "make test") != 0 ||
+       strcmp(options.tabs[1].title, "Logs") != 0 ||
+       strcmp(options.tabs[1].working_directory, "/tmp/logs") != 0 ||
+       strcmp(options.tabs[1].command, "tail -f app.log") != 0 ||
+       strcmp(options.tabs[2].title, "Shell") != 0) {
+        fprintf(stderr, "tab spec parse produced wrong state\n");
+        return 0;
+    }
+    return 1;
+}
+
+static int launch_options_tab_separator_at_start(void)
+{
+    Config config;
+    LaunchOptions options;
+    char error[256];
+    char *argv[] = {
+        "kapsule",
+        "--tab",
+        "--title",
+        "One",
+        "--window",
+        "--command",
+        "pwd"
+    };
+
+    config_defaults(&config);
+    launch_options_defaults(&options);
+    if(launch_options_parse(&options, &config,
+                            (int)(sizeof(argv) / sizeof(argv[0])), argv,
+                            error, (int)sizeof(error)) != LAUNCH_PARSE_OK) {
+        fprintf(stderr, "leading tab separator parse failed: %s\n", error);
+        return 0;
+    }
+    if(options.tab_count != 2 ||
+       strcmp(options.tabs[0].title, "One") != 0 ||
+       strcmp(options.tabs[1].command, "pwd") != 0) {
+        fprintf(stderr, "leading tab separator state was wrong\n");
+        return 0;
+    }
+    return 1;
+}
+
+static int launch_options_reject_too_many_tabs(void)
+{
+    Config config;
+    LaunchOptions options;
+    char error[256];
+    char *argv[] = {
+        "kapsule",
+        "--tab",
+        "--tab",
+        "--tab",
+        "--tab",
+        "--tab",
+        "--tab",
+        "--tab",
+        "--tab",
+        "--tab"
+    };
+
+    config_defaults(&config);
+    launch_options_defaults(&options);
+    if(launch_options_parse(&options, &config,
+                            (int)(sizeof(argv) / sizeof(argv[0])), argv,
+                            error, (int)sizeof(error)) !=
+       LAUNCH_PARSE_ERROR) {
+        fprintf(stderr, "too many launch tabs were accepted\n");
+        return 0;
+    }
+    return 1;
+}
+
 static int session_store_roundtrips_escaped_tabs(void)
 {
     char dir[] = "/tmp/kapsule-session-test-XXXXXX";
@@ -645,6 +874,27 @@ static int line_equals(TerminalState *terminal, int row, const char *expected)
     return 1;
 }
 
+static int utf8_terminal_glyphs_roundtrip(void)
+{
+    TerminalState terminal;
+
+    terminal_init(&terminal);
+    if(!terminal_allocate_screen(&terminal, 100, 4)) {
+        fprintf(stderr, "utf8 glyph screen allocation failed\n");
+        return 0;
+    }
+    terminal_feed(&terminal,
+                  "box ──┼── block ▁▂▃▄▅▆▇█ check ✓ greek Λ cjk 測試",
+                  80);
+    if(!line_equals(&terminal, 0,
+                    "box ──┼── block ▁▂▃▄▅▆▇█ check ✓ greek Λ cjk 測試")) {
+        terminal_close(&terminal);
+        return 0;
+    }
+    terminal_close(&terminal);
+    return 1;
+}
+
 static int ctrl_c_interrupts_child(void)
 {
     TerminalState terminal;
@@ -668,6 +918,24 @@ static int ctrl_c_interrupts_child(void)
     terminal_close(&terminal);
     fprintf(stderr, "ctrl-c did not interrupt child\n");
     return 0;
+}
+
+static int close_does_not_hang_on_stubborn_child(void)
+{
+    TerminalState terminal;
+
+    terminal_init(&terminal);
+    if(!terminal_spawn(&terminal, NULL, "/bin/sh",
+                       "trap '' HUP TERM; while :; do sleep 1; done",
+                       24, 4)) {
+        fprintf(stderr, "stubborn child spawn failed\n");
+        return 0;
+    }
+    usleep(100000);
+    alarm(3);
+    terminal_close(&terminal);
+    alarm(0);
+    return 1;
 }
 
 static int finish_capture(const char *name, TerminalState *terminal, int read_fd,
@@ -2548,6 +2816,20 @@ int main(void)
         return 1;
     if(!config_save_load_escapes_profile_text())
         return 1;
+    if(!launch_options_accept_xfce_aliases())
+        return 1;
+    if(!launch_options_execute_quotes_remainder())
+        return 1;
+    if(!launch_options_reject_bad_geometry())
+        return 1;
+    if(!launch_options_accept_drop_down())
+        return 1;
+    if(!launch_options_builds_tab_specs())
+        return 1;
+    if(!launch_options_tab_separator_at_start())
+        return 1;
+    if(!launch_options_reject_too_many_tabs())
+        return 1;
     if(!session_store_roundtrips_escaped_tabs())
         return 1;
     if(!palette_defaults_follow_kryon_theme_tokens())
@@ -3545,7 +3827,11 @@ int main(void)
         return 1;
     if(!newline_mode_controls_linefeed())
         return 1;
+    if(!utf8_terminal_glyphs_roundtrip())
+        return 1;
     if(!ctrl_c_interrupts_child())
+        return 1;
+    if(!close_does_not_hang_on_stubborn_child())
         return 1;
     printf("ok terminal\n");
     return 0;

@@ -1,0 +1,107 @@
+---
+name: Build and Release
+
+"on":
+  pull_request:
+  push:
+    branches:
+      - master
+      - main
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  KAPSULE_DIR: kapsule
+  KRYON_DIR: kryon
+  ENGINE_DIR: ${{ github.workspace }}/kryon
+
+jobs:
+  linux-build:
+    name: Linux build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Kapsule
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.KAPSULE_DIR }}
+
+      - name: Check out Kryon
+        uses: actions/checkout@v4
+        with:
+          repository: kryonlabs/kryon
+          path: ${{ env.KRYON_DIR }}
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            ca-certificates \
+            cmake \
+            git \
+            libbrotli-dev \
+            libdrm-dev \
+            libegl1-mesa-dev \
+            libgbm-dev \
+            libgles2-mesa-dev \
+            libgtk-3-dev \
+            libssl-dev \
+            libsdl2-dev \
+            libzstd-dev \
+            pkg-config \
+            zlib1g-dev
+
+      - name: Build Kryon
+        working-directory: ${{ env.KRYON_DIR }}
+        run: make all
+
+      - name: Test Kapsule
+        working-directory: ${{ env.KAPSULE_DIR }}
+        run: make ENGINE_DIR="${ENGINE_DIR}" test
+
+      - name: Build Kapsule
+        working-directory: ${{ env.KAPSULE_DIR }}
+        run: make ENGINE_DIR="${ENGINE_DIR}" all
+
+      - name: Package Linux binary
+        working-directory: ${{ env.KAPSULE_DIR }}
+        run: |
+          set -eu
+          version="${GITHUB_REF_NAME:-${GITHUB_SHA}}"
+          version="$(printf '%s' "${version}" | tr '/ :' '---')"
+          package="kapsule-linux-x86_64-${version}"
+          mkdir -p "dist/${package}/bin"
+          cp build/linux-x86_64/bin/kapsule "dist/${package}/bin/kapsule"
+          cp README.md "dist/${package}/README.md"
+          cp docs/REMAINING_FEATURE_PLAN.md \
+            "dist/${package}/REMAINING_FEATURE_PLAN.md"
+          if [ -d benchmarks/results ]; then
+            mkdir -p "dist/${package}/benchmarks"
+            cp benchmarks/README.md "dist/${package}/benchmarks/README.md"
+          fi
+          tar -C dist -czf "dist/${package}.tar.gz" "${package}"
+          sha256sum "dist/${package}.tar.gz" > "dist/${package}.tar.gz.sha256"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kapsule-linux-x86_64
+          path: |
+            ${{ env.KAPSULE_DIR }}/dist/*.tar.gz
+            ${{ env.KAPSULE_DIR }}/dist/*.sha256
+
+      - name: Upload release assets
+        if: github.event_name == 'release'
+        working-directory: ${{ env.KAPSULE_DIR }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: >
+          gh release upload "${RELEASE_TAG}"
+          dist/*.tar.gz dist/*.sha256 --clobber

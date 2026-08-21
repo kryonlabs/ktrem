@@ -49,9 +49,11 @@ BOX2D_A = $(ENGINE_BUILD_DIR)/vendor/box2d/src/libbox2d.a
 
 APP = $(BUILD_DIR)/bin/kapsule
 TEST = $(BUILD_DIR)/tests/terminal_test
+PARSER_BENCH = $(BUILD_DIR)/benchmarks/parser_replay
 SRC_FILES := $(wildcard src/*.c)
 OBJS = $(patsubst src/%.c,$(BUILD_DIR)/src/%.o,$(SRC_FILES))
 TEST_OBJS = $(BUILD_DIR)/tests/terminal_test.o $(BUILD_DIR)/src/config.o \
+	$(BUILD_DIR)/src/launch_options.o \
 	$(BUILD_DIR)/src/terminal.o \
 	$(BUILD_DIR)/src/terminal_csi.o \
 	$(BUILD_DIR)/src/terminal_modes.o \
@@ -67,6 +69,18 @@ TEST_OBJS = $(BUILD_DIR)/tests/terminal_test.o $(BUILD_DIR)/src/config.o \
 	$(BUILD_DIR)/src/input.o $(BUILD_DIR)/src/selection.o \
 	$(BUILD_DIR)/src/session_store.o $(BUILD_DIR)/src/profile.o \
 	$(BUILD_DIR)/src/palette.o
+PARSER_BENCH_OBJS = $(BUILD_DIR)/benchmarks/parser_replay.o \
+	$(BUILD_DIR)/src/terminal.o \
+	$(BUILD_DIR)/src/terminal_csi.o \
+	$(BUILD_DIR)/src/terminal_modes.o \
+	$(BUILD_DIR)/src/terminal_keys.o $(BUILD_DIR)/src/terminal_paste.o \
+	$(BUILD_DIR)/src/terminal_mouse.o $(BUILD_DIR)/src/terminal_search.o \
+	$(BUILD_DIR)/src/terminal_view.o $(BUILD_DIR)/src/terminal_osc.o \
+	$(BUILD_DIR)/src/terminal_sixel.o $(BUILD_DIR)/src/terminal_dcs.o \
+	$(BUILD_DIR)/src/terminal_sgr.o $(BUILD_DIR)/src/terminal_screen.o \
+	$(BUILD_DIR)/src/terminal_text.o \
+	$(BUILD_DIR)/src/terminal_parser.o \
+	$(BUILD_DIR)/src/terminal_pty.o
 
 RAY_SDL_CFLAGS ?= $(shell pkg-config --cflags sdl2 2>/dev/null)
 RAY_SDL_LDLIBS ?= $(shell pkg-config --libs sdl2 2>/dev/null)
@@ -98,7 +112,7 @@ LDLIBS += $(RAYLIB_A) $(BOX2D_A) $(RAY_LDLIBS) $(LIBOQS_A) \
 	$(CURL_A) -lssl -lcrypto -lpthread $(CMARK_EXT_A) $(CMARK_A) \
 	$(SYSTEM_THEME_LDLIBS) $(CURL_CODEC_LDLIBS) -lz -lm $(PLATFORM_LDLIBS)
 
-.PHONY: all run test clean install engine
+.PHONY: all run test benchmark-parser clean install engine
 
 all: $(APP)
 
@@ -141,13 +155,21 @@ $(TEST): engine $(TEST_OBJS) $(ENGINE_CLIPBOARD_OBJ) \
 		$(ENGINE_TERMINAL_PANE_SIXEL_OBJ) \
 		$(ENGINE_TERMINAL_PANE_TEXT_OBJ)
 
+$(PARSER_BENCH): engine $(PARSER_BENCH_OBJS) $(ENGINE_LIB) $(RAYLIB_A) | $(BUILD_DIR)/benchmarks
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(PARSER_BENCH_OBJS) \
+		-Wl,--whole-archive $(ENGINE_LIB) -Wl,--no-whole-archive \
+		$(LDLIBS)
+
 $(BUILD_DIR)/src/%.o: src/%.c src/*.h | $(BUILD_DIR)/src
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/tests/%.o: tests/%.c src/terminal.h | $(BUILD_DIR)/tests
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/bin $(BUILD_DIR)/src $(BUILD_DIR)/tests:
+$(BUILD_DIR)/benchmarks/%.o: benchmarks/%.c src/terminal.h | $(BUILD_DIR)/benchmarks
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/bin $(BUILD_DIR)/src $(BUILD_DIR)/tests $(BUILD_DIR)/benchmarks:
 	mkdir -p $@
 
 run: $(APP)
@@ -155,6 +177,9 @@ run: $(APP)
 
 test: $(TEST)
 	$(TEST)
+
+benchmark-parser: $(PARSER_BENCH)
+	$(PARSER_BENCH)
 
 install: $(APP)
 	mkdir -p $(DESTDIR)$(BINDIR)

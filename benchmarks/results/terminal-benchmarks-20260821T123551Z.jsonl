@@ -1,0 +1,9 @@
+# Kapsule terminal benchmark run 20260821T123551Z
+{"terminal":"kapsule","run":1,"launch_to_result_ms":611,"payload":{"workload":"find_dialog","elapsed_ms":611,"lines":18000,"bytes":1746000}}
+{"terminal":"kapsule","run":2,"launch_to_result_ms":614,"payload":{"workload":"find_dialog","elapsed_ms":614,"lines":18000,"bytes":1746000}}
+{"terminal":"kapsule","run":3,"launch_to_result_ms":614,"payload":{"workload":"find_dialog","elapsed_ms":614,"lines":18000,"bytes":1746000}}
+{"terminal":"xfce4-terminal","run":1,"launch_to_result_ms":608,"payload":{"workload":"find_dialog","elapsed_ms":608,"lines":18000,"bytes":1746000}}
+{"terminal":"xfce4-terminal","run":2,"launch_to_result_ms":608,"payload":{"workload":"find_dialog","elapsed_ms":608,"lines":18000,"bytes":1746000}}
+{"terminal":"xfce4-terminal","run":3,"launch_to_result_ms":691,"payload":{"workload":"find_dialog","elapsed_ms":691,"lines":18000,"bytes":1746000}}
+{"summary":true,"terminal":"xfce4-terminal","workload":"find_dialog","runs":3,"min_elapsed_ms":608,"avg_elapsed_ms":635.7,"max_elapsed_ms":691}
+{"summary":true,"terminal":"kapsule","workload":"find_dialog","runs":3,"min_elapsed_ms":611,"avg_elapsed_ms":613.0,"max_elapsed_ms":614}

@@ -67,6 +67,11 @@ static void estimate_terminal_grid(State *app, int *cols, int *rows)
     *rows = 30;
     if(app == NULL)
         return;
+    if(app->launch.geometry_cols > 0 && app->launch.geometry_rows > 0) {
+        *cols = clamp_int(app->launch.geometry_cols, 8, MAX_COLS);
+        *rows = clamp_int(app->launch.geometry_rows, 4, MAX_ROWS);
+        return;
+    }
     UseUIFont("kapsule-terminal");
     metrics = MeasureTerminalPaneContent(
         TerminalPaneContentBounds(
@@ -93,7 +98,8 @@ void seed_theme_defaults_to_terminal(State *app, TerminalState *terminal)
     terminal_profile_seed_missing(&app->config, &app->palette, terminal);
 }
 
-void open_session(State *app, const char *command)
+static void open_session_with_launch(State *app, const char *cwd,
+                                     const char *command, const char *title)
 {
     Session *session;
     int cols = 100;
@@ -106,13 +112,46 @@ void open_session(State *app, const char *command)
     estimate_terminal_grid(app, &cols, &rows);
     session = &app->sessions[new_index];
     session_init(session);
-    session_open(session, initial_cwd(&app->config), app->config.shell,
+    session_open(session,
+                 cwd != NULL && cwd[0] != '\0' ? cwd :
+                     initial_cwd(&app->config),
+                 app->config.shell,
                  command != NULL ? command : app->config.command, cols, rows,
                  app->config.scrollback_limit);
+    if(title != NULL && title[0] != '\0')
+        session_set_title(session, title);
     apply_profile_defaults_to_terminal(app, &session->terminal);
     app->session_count++;
     set_active_session(app, new_index);
     app->rename_index = -1;
+}
+
+void open_session(State *app, const char *command)
+{
+    const char *title = NULL;
+
+    if(app != NULL && app->session_count == 0 &&
+       app->launch.initial_title[0] != '\0')
+        title = app->launch.initial_title;
+    open_session_with_launch(app, NULL, command, title);
+}
+
+int open_launch_sessions(State *app)
+{
+    int i;
+    int opened = 0;
+
+    if(app == NULL || app->launch.tab_count <= 0)
+        return 0;
+    for(i = 0; i < app->launch.tab_count && app->session_count < MAX_SESSIONS;
+        i++) {
+        LaunchTabSpec *tab = &app->launch.tabs[i];
+
+        open_session_with_launch(app, tab->working_directory, tab->command,
+                                 tab->title);
+        opened++;
+    }
+    return opened;
 }
 
 void close_session(State *app, int index)
