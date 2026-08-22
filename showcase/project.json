@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "slug": "kapsule",
+  "name": "Kapsule",
+  "summary": "Native terminal application with sessions, tabs, and focused developer workflows.",
+  "repository": {
+    "platform": "github",
+    "url": "https://github.com/kryonlabs/kapsule",
+    "owner": "kryonlabs",
+    "name": "kapsule"
+  },
+  "homepage": "https://kapsule.kryonlabs.com",
+  "banner": "showcase/banner.png",
+  "tags": ["terminal", "developer-tools", "desktop"],
+  "featured": true
+}
