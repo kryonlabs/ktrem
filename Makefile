@@ -101,7 +101,7 @@ PLATFORM_LDLIBS ?=
 endif
 
 CFLAGS ?= -Wall -Wextra -O2
-CPPFLAGS += -Isrc -I$(ENGINE_DIR)/include -I$(ENGINE_DIR)/vendor/clay \
+CPPFLAGS += -Isrc -I$(ENGINE_DIR)/include \
 	$(RAY_SDL_CFLAGS) $(RAY_GL_CFLAGS) $(SYSTEM_THEME_CFLAGS) \
 	-DHAS_LIBOQS=1 -I$(ENGINE_BUILD_DIR)/vendor/liboqs/include \
 	-DHAS_LIBCURL=1 -DCURL_STATICLIB -I$(ENGINE_BUILD_DIR)/vendor/curl/include \
