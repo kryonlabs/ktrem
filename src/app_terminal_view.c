@@ -39,7 +39,7 @@ static Color blend_color(Color a, Color b, float t)
 
 static void draw_tabs(State *app, Rectangle bounds)
 {
-    UITab tabs[MAX_SESSIONS + 1];
+    Tab tabs[MAX_SESSIONS + 1];
     int i;
     int count;
     int clicked;
@@ -218,8 +218,8 @@ static void draw_line_cells(State *app, const TerminalState *terminal,
         len = cell_text(cell, text, sizeof(text));
         if(len <= 0)
             continue;
-        DrawUIText(text, (int)app->viewport.x + col * app->cell_w, y,
-                   app->config.font_size, fg);
+        Text(text, (int)app->viewport.x + col * app->cell_w, y,
+             app->config.font_size, fg);
         if(linked && !selected)
             underline = theme_colors.link;
         if((cell->style & STYLE_UNDERLINE) != 0 || linked)
@@ -309,8 +309,8 @@ static void draw_sixel_images(State *app, const TerminalState *terminal,
 void draw_terminal_view(State *app, Session *session, Rectangle bounds)
 {
     TerminalState *terminal = &session->terminal;
-    int menu_h = ScaleUIPx(34);
-    int tab_h = TabBarHeight();
+    int menu_h = app->launch.show_menubar ? ScaleUIPx(34) : 0;
+    int tab_h = app->launch.show_toolbar ? TabBarHeight() : 0;
     int chrome_h = menu_h + tab_h;
     TerminalPaneMetrics metrics;
     TerminalPaneColors theme_colors;
@@ -339,10 +339,14 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     view_colors = terminal_view_colors(app, terminal, theme_colors);
 
     DrawRectangleRec(bounds, app->palette.background);
-    draw_app_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
-                                       (float)menu_h});
-    draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
-                               bounds.width, (float)tab_h});
+    if(menu_h > 0) {
+        draw_app_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
+                                           (float)menu_h});
+    }
+    if(tab_h > 0) {
+        draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
+                                   bounds.width, (float)tab_h});
+    }
     DrawRectangleRec(app->viewport, view_colors.background);
 
     BeginScissorMode((int)app->viewport.x, (int)app->viewport.y,
@@ -385,8 +389,8 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
                 DrawRectangle(x, y, app->cell_w, app->line_h,
                               view_colors.cursor);
                 if(cell != NULL && cell_text(cell, text, sizeof(text)) > 0)
-                    DrawUIText(text, x, y, app->config.font_size,
-                               view_colors.background);
+                    Text(text, x, y, app->config.font_size,
+                         view_colors.background);
             }
         }
     }
@@ -474,19 +478,22 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
 void draw_starting_frame(State *app)
 {
     Rectangle bounds = {0, 0, (float)GetScreenWidth(), (float)GetScreenHeight()};
-    int menu_h = ScaleUIPx(34);
-    int tab_h = TabBarHeight();
+    int menu_h = app->launch.show_menubar ? ScaleUIPx(34) : 0;
+    int tab_h = app->launch.show_toolbar ? TabBarHeight() : 0;
     Rectangle viewport = TerminalPaneContentBounds(bounds, menu_h + tab_h, 0);
     TerminalPaneColors theme_colors = terminal_theme_tokens();
 
     UseUIFont("kapsule-ui");
     DrawRectangleRec(bounds, app->palette.background);
-    draw_app_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
-                                       (float)menu_h});
-    draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
-                               bounds.width, (float)tab_h});
+    if(menu_h > 0) {
+        draw_app_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
+                                           (float)menu_h});
+    }
+    if(tab_h > 0) {
+        draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
+                                   bounds.width, (float)tab_h});
+    }
     DrawRectangleRec(viewport, theme_colors.background);
-    DrawUIText("Starting terminal...", (int)viewport.x + 10,
-               (int)viewport.y + 10, app->config.font_size,
-               theme_colors.text);
+    Text("Starting terminal...", (int)viewport.x + 10,
+         (int)viewport.y + 10, app->config.font_size, theme_colors.text);
 }

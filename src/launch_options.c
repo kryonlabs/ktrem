@@ -208,7 +208,7 @@ void launch_options_defaults(LaunchOptions *options)
         return;
     memset(options, 0, sizeof(*options));
     options->show_menubar = 1;
-    options->show_toolbar = 0;
+    options->show_toolbar = 1;
     options->show_borders = 1;
 }
 
@@ -243,6 +243,8 @@ LaunchParseResult launch_options_parse(LaunchOptions *options, Config *config,
         if(strcmp(arg, "--drop-down") == 0) {
             options->drop_down = 1;
             options->show_borders = 0;
+            options->show_menubar = 0;
+            options->show_toolbar = 0;
             continue;
         }
         if(strcmp(arg, "--tab") == 0 || strcmp(arg, "--window") == 0) {
