@@ -938,6 +938,91 @@ static int close_does_not_hang_on_stubborn_child(void)
     return 1;
 }
 
+static int bash_with_temp_bashrc_outputs(const char *name,
+                                         const char *bashrc_text,
+                                         const char *command,
+                                         const char *marker)
+{
+    TerminalState terminal;
+    char dir[] = "/tmp/kapsule-bashrc-test-XXXXXX";
+    char bashrc[sizeof(dir) + 16];
+    char old_home_copy[512];
+    const char *old_home;
+    FILE *fp;
+    int ok = 0;
+    int i;
+
+    if(access("/bin/bash", X_OK) != 0) {
+        fprintf(stderr, "%s needs /bin/bash\n", name);
+        return 0;
+    }
+    if(mkdtemp(dir) == NULL) {
+        fprintf(stderr, "%s: mkdtemp failed\n", name);
+        return 0;
+    }
+    snprintf(bashrc, sizeof(bashrc), "%s/.bashrc", dir);
+    fp = fopen(bashrc, "w");
+    if(fp == NULL) {
+        fprintf(stderr, "%s: could not write .bashrc\n", name);
+        rmdir(dir);
+        return 0;
+    }
+    fputs(bashrc_text, fp);
+    fclose(fp);
+
+    old_home = getenv("HOME");
+    snprintf(old_home_copy, sizeof(old_home_copy), "%s",
+             old_home != NULL ? old_home : "");
+    setenv("HOME", dir, 1);
+
+    terminal_init(&terminal);
+    if(!terminal_spawn(&terminal, NULL, "/bin/bash", command, 80, 8)) {
+        fprintf(stderr, "%s: spawn failed\n", name);
+        if(old_home != NULL)
+            setenv("HOME", old_home_copy, 1);
+        else
+            unsetenv("HOME");
+        unlink(bashrc);
+        rmdir(dir);
+        return 0;
+    }
+    for(i = 0; i < 80; i++) {
+        terminal_poll(&terminal);
+        if(line_has(&terminal, marker)) {
+            ok = 1;
+            break;
+        }
+        usleep(25000);
+    }
+    terminal_close(&terminal);
+
+    if(old_home != NULL)
+        setenv("HOME", old_home_copy, 1);
+    else
+        unsetenv("HOME");
+    unlink(bashrc);
+    rmdir(dir);
+
+    if(!ok)
+        fprintf(stderr, "%s: marker did not appear\n", name);
+    return ok;
+}
+
+static int interactive_bash_sources_bashrc(void)
+{
+    return bash_with_temp_bashrc_outputs(
+        "interactive bashrc test", "echo KAPSULE_BASHRC_MARKER\nexit\n", NULL,
+        "KAPSULE_BASHRC_MARKER");
+}
+
+static int command_bash_sources_bashrc(void)
+{
+    return bash_with_temp_bashrc_outputs(
+        "command bashrc test",
+        "kapsule_marker() { echo KAPSULE_COMMAND_BASHRC_MARKER; }\n",
+        "kapsule_marker", "KAPSULE_COMMAND_BASHRC_MARKER");
+}
+
 static int finish_capture(const char *name, TerminalState *terminal, int read_fd,
                           const char *expected)
 {
@@ -3830,6 +3915,10 @@ int main(void)
     if(!utf8_terminal_glyphs_roundtrip())
         return 1;
     if(!ctrl_c_interrupts_child())
+        return 1;
+    if(!interactive_bash_sources_bashrc())
+        return 1;
+    if(!command_bash_sources_bashrc())
         return 1;
     if(!close_does_not_hang_on_stubborn_child())
         return 1;

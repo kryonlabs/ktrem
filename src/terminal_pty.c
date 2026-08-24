@@ -65,6 +65,17 @@ static void set_window_size(int fd, int cols, int rows)
     ioctl(fd, TIOCSWINSZ, &size);
 }
 
+static int shell_is_bash(const char *shell)
+{
+    const char *name;
+
+    if(shell == NULL)
+        return 0;
+    name = strrchr(shell, '/');
+    name = name != NULL ? name + 1 : shell;
+    return strcmp(name, "bash") == 0;
+}
+
 int terminal_spawn(TerminalState *terminal, const char *cwd, const char *shell,
                    const char *command, int cols, int rows)
 {
@@ -121,8 +132,12 @@ int terminal_spawn(TerminalState *terminal, const char *cwd, const char *shell,
             run_shell = getenv("SHELL");
         if(run_shell == NULL || run_shell[0] == '\0')
             run_shell = "/bin/sh";
-        if(command != NULL && command[0] != '\0')
-            execl(run_shell, run_shell, "-lc", command, (char *)NULL);
+        if(command != NULL && command[0] != '\0') {
+            if(shell_is_bash(run_shell))
+                execl(run_shell, run_shell, "-i", "-c", command, (char *)NULL);
+            else
+                execl(run_shell, run_shell, "-lc", command, (char *)NULL);
+        }
         else
             execl(run_shell, run_shell, "-i", (char *)NULL);
         _exit(127);
