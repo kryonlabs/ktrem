@@ -17,6 +17,7 @@
 
 typedef struct Plan9TerminalSession {
     TerminalState *terminal;
+    int slot;
     int input_fd;
     int output_fd;
     int child_pid;
@@ -26,6 +27,11 @@ typedef struct Plan9TerminalSession {
     volatile uint head;
     volatile uint tail;
     uchar ring[PLAN9_RING_SIZE];
+#ifdef KAPSULE_PLAN9_EMBEDDED_HOST
+    char spool_path[128];
+    char done_path[128];
+    vlong spool_offset;
+#endif
 } Plan9TerminalSession;
 
 static Plan9TerminalSession plan9_sessions[PLAN9_SESSION_LIMIT];
@@ -51,6 +57,7 @@ static Plan9TerminalSession *plan9_alloc_session(TerminalState *terminal)
            plan9_sessions[i].reader_done) {
             memset(&plan9_sessions[i], 0, sizeof(plan9_sessions[i]));
             plan9_sessions[i].terminal = terminal;
+            plan9_sessions[i].slot = i;
             plan9_sessions[i].input_fd = -1;
             plan9_sessions[i].output_fd = -1;
             return &plan9_sessions[i];
@@ -103,6 +110,39 @@ static void plan9_reader_loop(Plan9TerminalSession *session)
 {
     uchar buffer[4096];
 
+#ifdef KAPSULE_PLAN9_EMBEDDED_HOST
+    int spool;
+
+    spool = -1;
+    if(session != nil && session->spool_path[0] != '\0')
+        spool = create(session->spool_path, OWRITE|OTRUNC, 0600);
+    if(spool < 0) {
+        if(session != nil && session->done_path[0] != '\0') {
+            int done;
+
+            done = create(session->done_path, OWRITE|OTRUNC, 0600);
+            if(done >= 0)
+                close(done);
+        }
+        return;
+    }
+    while(session != nil) {
+        long n;
+
+        n = read(session->output_fd, buffer, sizeof(buffer));
+        if(n <= 0)
+            break;
+        write(spool, buffer, n);
+    }
+    close(spool);
+    if(session != nil && session->done_path[0] != '\0') {
+        int done;
+
+        done = create(session->done_path, OWRITE|OTRUNC, 0600);
+        if(done >= 0)
+            close(done);
+    }
+#else
     while(session != nil && !session->closed) {
         long n;
         long i;
@@ -123,13 +163,25 @@ static void plan9_reader_loop(Plan9TerminalSession *session)
         }
     }
     session->reader_done = 1;
+#endif
 }
 
 static int plan9_start_reader(Plan9TerminalSession *session)
 {
     int pid;
 
+#ifdef KAPSULE_PLAN9_EMBEDDED_HOST
+    snprint(session->spool_path, sizeof(session->spool_path),
+            "/tmp/kterm.%d.%d.out", getpid(), session->slot);
+    snprint(session->done_path, sizeof(session->done_path),
+            "/tmp/kterm.%d.%d.done", getpid(), session->slot);
+    remove(session->spool_path);
+    remove(session->done_path);
+    session->spool_offset = 0;
+    pid = rfork(RFPROC|RFFDG|RFENVG|RFNOTEG|RFNOWAIT);
+#else
     pid = rfork(RFPROC|RFMEM|RFNOWAIT);
+#endif
     if(pid < 0)
         return 0;
     if(pid == 0) {
@@ -139,6 +191,71 @@ static int plan9_start_reader(Plan9TerminalSession *session)
     session->reader_pid = pid;
     return 1;
 }
+
+#ifdef KAPSULE_PLAN9_EMBEDDED_HOST
+static int plan9_poll_spool(Plan9TerminalSession *session)
+{
+    char buffer[4096];
+    Dir *dir;
+    int fd;
+    int bytes;
+    int done;
+
+    if(session == nil || session->spool_path[0] == '\0')
+        return 0;
+    dir = dirstat(session->spool_path);
+    if(dir == nil) {
+        dir = dirstat(session->done_path);
+        if(dir != nil) {
+            free(dir);
+            session->reader_done = 1;
+            if(session->output_fd >= 0) {
+                close(session->output_fd);
+                session->output_fd = -1;
+            }
+            session->terminal->running = 0;
+        }
+        return 0;
+    }
+    done = 0;
+    if(dir->length <= session->spool_offset) {
+        free(dir);
+        dir = dirstat(session->done_path);
+        if(dir != nil) {
+            done = 1;
+            free(dir);
+        }
+        if(done) {
+            session->reader_done = 1;
+            if(session->output_fd >= 0) {
+                close(session->output_fd);
+                session->output_fd = -1;
+            }
+            session->terminal->running = 0;
+        }
+        return 0;
+    }
+    free(dir);
+
+    fd = open(session->spool_path, OREAD);
+    if(fd < 0)
+        return 0;
+    seek(fd, session->spool_offset, 0);
+    bytes = 0;
+    for(;;) {
+        long n;
+
+        n = read(fd, buffer, sizeof(buffer));
+        if(n <= 0)
+            break;
+        session->spool_offset += n;
+        terminal_feed(session->terminal, buffer, n);
+        bytes += n;
+    }
+    close(fd);
+    return bytes;
+}
+#endif
 
 static void plan9_exec_child(const char *cwd, const char *shell,
                              const char *command)
@@ -261,6 +378,9 @@ int terminal_poll_bytes(TerminalState *terminal)
     session = plan9_find_session(terminal);
     if(session == nil)
         return 0;
+#ifdef KAPSULE_PLAN9_EMBEDDED_HOST
+    bytes = plan9_poll_spool(session);
+#else
     bytes = 0;
     while(session->tail != session->head) {
         int n;
@@ -281,6 +401,7 @@ int terminal_poll_bytes(TerminalState *terminal)
         }
         terminal->running = 0;
     }
+#endif
     return bytes;
 }
 
@@ -339,6 +460,12 @@ void terminal_close(TerminalState *terminal)
             postnote(PNPROC, session->child_pid, "hangup");
         if(session->reader_pid > 0)
             postnote(PNPROC, session->reader_pid, "hangup");
+#ifdef KAPSULE_PLAN9_EMBEDDED_HOST
+        if(session->spool_path[0] != '\0')
+            remove(session->spool_path);
+        if(session->done_path[0] != '\0')
+            remove(session->done_path);
+#endif
         session->terminal = nil;
     }
     free(terminal->main_cells);
