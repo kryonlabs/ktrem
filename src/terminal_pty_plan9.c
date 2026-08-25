@@ -370,7 +370,9 @@ int terminal_write_text(TerminalState *terminal, const char *text)
 int terminal_poll_bytes(TerminalState *terminal)
 {
     Plan9TerminalSession *session;
+#ifndef KAPSULE_PLAN9_EMBEDDED_HOST
     char buffer[4096];
+#endif
     int bytes;
 
     if(terminal == nil)
