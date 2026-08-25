@@ -11,10 +11,6 @@
 
 #include "kryon.h"
 
-#ifdef KRYON_NATIVE_PLAN9
-#include "kryon_plan9.h"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
