@@ -185,6 +185,7 @@ kapsule_state_init(KapsuleHost *host)
     config_defaults(&app->config);
     launch_options_defaults(&app->launch);
     config_load(&app->config);
+    app->config.command[0] = '\0';
     snprintf(app->window_title, sizeof(app->window_title), "Kapsule");
     app->window_focused = 0;
     load_kryon_font(&app->config);
