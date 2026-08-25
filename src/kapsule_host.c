@@ -195,7 +195,7 @@ kapsule_state_init(KapsuleHost *host)
     for(i = 0; i < MAX_SESSIONS; i++)
         session_init(&app->sessions[i]);
     if(!open_launch_sessions(app))
-        restore_sessions(app);
+        open_session(app, NULL);
     host->initialized = 1;
 }
 
