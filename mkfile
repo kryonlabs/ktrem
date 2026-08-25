@@ -1,6 +1,6 @@
 < /$objtype/mkfile
 
-TARG=kterm
+TARG=kapsule
 KRYON=/sys/src/kryon
 BIN=/$objtype/bin
 OUT=$O.out
