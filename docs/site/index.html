@@ -3,25 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kapsule - Kryon terminal</title>
-  <meta name="description" content="Kapsule is a fast Kryon-built terminal aiming to be a practical xfce4-terminal alternative with tabs, search, glyph coverage, launch compatibility, and measured benchmarks.">
+  <title>ktrem - Kryon terminal</title>
+  <meta name="description" content="ktrem is a fast Kryon-built terminal aiming to be a practical xfce4-terminal alternative with tabs, search, glyph coverage, launch compatibility, and measured benchmarks.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://kapsule.kryonlabs.com/">
-  <meta property="og:title" content="Kapsule - Kryon terminal">
+  <meta property="og:title" content="ktrem - Kryon terminal">
   <meta property="og:description" content="A fast Kryon-built terminal with xfce4-terminal compatibility goals, measured benchmarks, and a public parity plan.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://kapsule.kryonlabs.com/">
-  <meta name="twitter:title" content="Kapsule - Kryon terminal">
+  <meta name="twitter:title" content="ktrem - Kryon terminal">
   <meta name="twitter:description" content="A fast Kryon-built terminal with tabs, search, launch compatibility, and measured benchmark data.">
   <meta name="theme-color" content="#f3f1ea">
-  <meta name="keywords" content="Kapsule,Kryon,Kryon Labs,terminal,xfce4-terminal,terminal emulator,Linux terminal,benchmarks">
+  <meta name="keywords" content="ktrem,Kryon,Kryon Labs,terminal,xfce4-terminal,terminal emulator,Linux terminal,benchmarks">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="styles.css">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "Kapsule",
+    "name": "ktrem",
     "description": "A fast Kryon-built terminal aiming to be a practical xfce4-terminal alternative.",
     "url": "https://kapsule.kryonlabs.com",
     "applicationCategory": "DeveloperApplication",
@@ -34,7 +34,7 @@
 <body>
   <header class="site-header">
     <div class="site-header-inner">
-      <a class="brand" href="#top" aria-label="Kapsule home">
+      <a class="brand" href="#top" aria-label="ktrem home">
         <img src="favicon.svg" alt="" width="24" height="24">
         <span>KAPSULE</span>
       </a>
@@ -46,7 +46,7 @@
         <a href="#install">Install</a>
         <a href="#roadmap">Roadmap</a>
         <a class="is-external" href="https://kryonlabs.com">Kryon</a>
-        <a class="btn btn-primary" href="#install">Get Kapsule</a>
+        <a class="btn btn-primary" href="#install">Get ktrem</a>
       </nav>
     </div>
   </header>
@@ -55,8 +55,8 @@
     <section class="hero">
       <div class="hero-inner">
         <span class="hero-eyebrow"><span class="dot"></span>Kryon terminal emulator</span>
-        <img class="hero-icon" src="favicon.svg" width="84" height="84" alt="Kapsule">
-        <h1>Kapsule</h1>
+        <img class="hero-icon" src="favicon.svg" width="84" height="84" alt="ktrem">
+        <h1>ktrem</h1>
         <p class="hero-sub">A Kryon-built terminal for Linux desktops. The target is simple: become a practical xfce4-terminal alternative with fast output, familiar tabs, rich terminal compatibility, and honest public benchmarks.</p>
         <div class="hero-cta">
           <a class="btn btn-primary" href="#benchmarks">View benchmarks</a>
@@ -65,17 +65,17 @@
         </div>
       </div>
 
-      <figure class="hero-terminal" aria-label="Kapsule terminal preview">
+      <figure class="hero-terminal" aria-label="ktrem terminal preview">
         <div class="window-bar">
           <span class="traffic"></span><span class="traffic"></span><span class="traffic"></span>
-          <span class="window-title">kapsule - benchmarks</span>
+          <span class="window-title">ktrem - benchmarks</span>
         </div>
         <div class="tabs">
           <span class="tab is-active">1: shell</span>
           <span class="tab">2: build</span>
           <span class="tab">3: logs</span>
         </div>
-        <pre><code><span class="prompt">$</span> kapsule -x make test --tab
+        <pre><code><span class="prompt">$</span> ktrem -x make test --tab
 ok terminal
 
 <span class="prompt">$</span> make benchmark-parser
@@ -91,15 +91,15 @@ Alt+1..Alt+8 switch tabs directly.</code></pre>
     <section class="status-strip" aria-label="Current status">
       <div>
         <strong>Faster on current GUI suite</strong>
-        <span>Kapsule beats xfce4-terminal average time in every measured synthetic output workload.</span>
+        <span>ktrem beats xfce4-terminal average time in every measured synthetic output workload.</span>
       </div>
       <div>
         <strong>External workflows measured</strong>
-        <span>Kapsule averages 158.7 ms on live resize, 206.3 ms on clipboard paste, and 613.0 ms on find workflow under Xvfb.</span>
+        <span>ktrem averages 158.7 ms on live resize, 206.3 ms on clipboard paste, and 613.0 ms on find workflow under Xvfb.</span>
       </div>
       <div>
         <strong>Built on Kryon</strong>
-        <span>The terminal app lives in Kapsule; reusable runtime work stays in Kryon.</span>
+        <span>The terminal app lives in ktrem; reusable runtime work stays in Kryon.</span>
       </div>
     </section>
 
@@ -112,7 +112,7 @@ Alt+1..Alt+8 switch tabs directly.</code></pre>
           <thead>
             <tr>
               <th>Workload</th>
-              <th>Kapsule avg</th>
+              <th>ktrem avg</th>
               <th>xfce4-terminal avg</th>
               <th>State</th>
             </tr>
@@ -169,7 +169,7 @@ Alt+1..Alt+8 switch tabs directly.</code></pre>
     <section id="parity">
       <p class="section-eyebrow">Parity</p>
       <h2>Close, but not declared done</h2>
-      <p class="section-lead">Kapsule is already competitive on synthetic throughput and has a large terminal-compatibility surface. The remaining work is about server/drop-down behavior, packaging, and broader real-desktop validation.</p>
+      <p class="section-lead">ktrem is already competitive on synthetic throughput and has a large terminal-compatibility surface. The remaining work is about server/drop-down behavior, packaging, and broader real-desktop validation.</p>
       <div class="parity-grid">
         <article class="parity-card">
           <h3>Implemented</h3>
@@ -223,7 +223,7 @@ Alt+1..Alt+8 switch tabs directly.</code></pre>
         </article>
         <article class="feature-card">
           <h3>Kryon integration</h3>
-          <p>The app uses Kryon for windowing, rendering, input, system theme integration, and platform hooks while keeping terminal-specific behavior in Kapsule.</p>
+          <p>The app uses Kryon for windowing, rendering, input, system theme integration, and platform hooks while keeping terminal-specific behavior in ktrem.</p>
         </article>
       </div>
     </section>
@@ -231,11 +231,11 @@ Alt+1..Alt+8 switch tabs directly.</code></pre>
     <section id="install" class="callout">
       <div class="callout-inner">
         <p class="section-eyebrow">Install</p>
-        <h2>Build Kapsule locally</h2>
-        <p>Kapsule currently builds from source against a neighboring Kryon checkout. Install commands and package links will move here as release assets become available.</p>
+        <h2>Build ktrem locally</h2>
+        <p>ktrem currently builds from source against a neighboring Kryon checkout. Install commands and package links will move here as release assets become available.</p>
 <pre><code>git clone https://github.com/kryonlabs/kryon.git
 git clone https://github.com/kryonlabs/kapsule.git
-cd kapsule
+cd ktrem
 make
 make test
 make install</code></pre>
@@ -249,7 +249,7 @@ make install</code></pre>
         <div class="step"><span class="step-num">1</span><div><h3>Broaden benchmark coverage</h3><p>Add longer real-desktop workflow runs beside the existing output, clipboard paste, find, and live-resize Xvfb suites.</p></div></div>
         <div class="step"><span class="step-num">2</span><div><h3>Close launch/server parity</h3><p>Add real separate windows, single-instance command routing, and drop-down toggle behavior.</p></div></div>
         <div class="step"><span class="step-num">3</span><div><h3>Fix missing glyphs completely</h3><p>Add fontconfig fallback so box drawing, Powerline, CJK, symbols, Greek, and Cyrillic can resolve from installed system fonts.</p></div></div>
-        <div class="step"><span class="step-num">4</span><div><h3>Move renderer work into Kryon where reusable</h3><p>Keep Kapsule logic in Kapsule, but add reusable Kryon primitives for a retained GPU terminal-grid renderer when the design is proven.</p></div></div>
+        <div class="step"><span class="step-num">4</span><div><h3>Move renderer work into Kryon where reusable</h3><p>Keep ktrem logic in ktrem, but add reusable Kryon primitives for a retained GPU terminal-grid renderer when the design is proven.</p></div></div>
       </div>
     </section>
   </main>

@@ -51,9 +51,9 @@ CMARK_A = $(ENGINE_BUILD_DIR)/vendor/cmark-gfm/src/libcmark-gfm.a
 CMARK_EXT_A = $(ENGINE_BUILD_DIR)/vendor/cmark-gfm/extensions/libcmark-gfm-extensions.a
 BOX2D_A = $(ENGINE_BUILD_DIR)/vendor/box2d/src/libbox2d.a
 
-APP = $(BUILD_DIR)/bin/kapsule
-HOST_LIB = $(BUILD_DIR)/lib/libkapsule_host.a
-HOST_SO = $(BUILD_DIR)/lib/kapsule-host.so
+APP = $(BUILD_DIR)/bin/ktrem
+HOST_LIB = $(BUILD_DIR)/lib/libktrem_host.a
+HOST_SO = $(BUILD_DIR)/lib/ktrem-host.so
 TEST = $(BUILD_DIR)/tests/terminal_test
 PARSER_BENCH = $(BUILD_DIR)/benchmarks/parser_replay
 SRC_FILES := $(filter-out src/terminal_pty_plan9.c,$(wildcard src/*.c))
@@ -213,8 +213,8 @@ benchmark-parser: $(PARSER_BENCH)
 
 install: $(APP) $(HOST_SO)
 	mkdir -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(RILL_APP_HOSTDIR)
-	$(INSTALL) -m 755 $(APP) $(DESTDIR)$(BINDIR)/kapsule
-	$(INSTALL) -m 755 $(HOST_SO) $(DESTDIR)$(RILL_APP_HOSTDIR)/kapsule-host.so
+	$(INSTALL) -m 755 $(APP) $(DESTDIR)$(BINDIR)/ktrem
+	$(INSTALL) -m 755 $(HOST_SO) $(DESTDIR)$(RILL_APP_HOSTDIR)/ktrem-host.so
 
 clean:
 	rm -rf $(BUILD_ROOT)

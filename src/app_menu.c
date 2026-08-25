@@ -85,7 +85,7 @@ void draw_app_menu_bar(State *app, Rectangle bounds)
          APP_COMMAND_CLOSE_TAB, 0, 0, NULL, 0}
     };
     static const MenuItem help_items[] = {
-        {MenuCommand, "About Kapsule", NULL,
+        {MenuCommand, "About ktrem", NULL,
          APP_COMMAND_ABOUT, 0, 0, NULL, 0}
     };
     static const Menu menus[] = {

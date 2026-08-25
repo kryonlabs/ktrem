@@ -6,7 +6,7 @@ if [ "${KAPSULE_BENCH_USE_REAL_DISPLAY:-0}" != "1" ] &&
     if command -v xvfb-run >/dev/null 2>&1; then
         wrapper_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
         wrapper_out_dir="${1:-$wrapper_root/benchmarks/results}"
-        runtime_dir="${KAPSULE_BENCH_XDG_RUNTIME_DIR:-/tmp/kapsule-runtime}"
+        runtime_dir="${KAPSULE_BENCH_XDG_RUNTIME_DIR:-/tmp/ktrem-runtime}"
         mkdir -p "$runtime_dir"
         chmod 700 "$runtime_dir" 2>/dev/null || true
         set +e
@@ -33,14 +33,14 @@ fi
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 workload_script="$root/benchmarks/workload.sh"
 out_dir="${1:-$root/benchmarks/results}"
-kapsule_active_fps="${2:-}"
-kapsule_pty_burst_ms="${3:-}"
+ktrem_active_fps="${2:-}"
+ktrem_pty_burst_ms="${3:-}"
 bench_runs="${4:-${KAPSULE_BENCH_RUNS:-1}}"
 selected_workloads="${5:-${KAPSULE_BENCH_WORKLOADS:-}}"
 timestamp=$(date -u +%Y%m%dT%H%M%SZ)
 result_file="$out_dir/terminal-benchmarks-$timestamp.jsonl"
 workloads="${selected_workloads:-startup ansi_flood unicode_table alternate_redraw dense_sgr wrap_reflow scrollback_flood cursor_matrix paste_burst hyperlink_grid search_corpus}"
-terminals="${KAPSULE_BENCH_TERMINALS:-kapsule xfce4-terminal}"
+terminals="${KAPSULE_BENCH_TERMINALS:-ktrem xfce4-terminal}"
 
 arch=$(uname -m 2>/dev/null || printf unknown)
 case "$arch" in
@@ -52,9 +52,9 @@ case "$platform" in
     freebsd) platform=freebsd ;;
     darwin) platform=macos ;;
 esac
-kapsule_bin=${KAPSULE_BENCH_KAPSULE_BIN:-$root/build/$platform-$arch/bin/kapsule}
-if [ ! -x "$kapsule_bin" ]; then
-    kapsule_bin=$(command -v kapsule || true)
+ktrem_bin=${KAPSULE_BENCH_KAPSULE_BIN:-$root/build/$platform-$arch/bin/ktrem}
+if [ ! -x "$ktrem_bin" ]; then
+    ktrem_bin=$(command -v ktrem || true)
 fi
 
 mkdir -p "$out_dir"
@@ -77,26 +77,26 @@ fi
 launch_terminal() {
     terminal="$1"
     command="$2"
-    title="${3:-Kapsule benchmark}"
+    title="${3:-ktrem benchmark}"
     case "$terminal" in
-        kapsule)
-            if [ -n "$kapsule_active_fps" ] &&
-               [ -n "$kapsule_pty_burst_ms" ]; then
-                env KAPSULE_ACTIVE_FPS="$kapsule_active_fps" \
-                    KAPSULE_PTY_BURST_MS="$kapsule_pty_burst_ms" \
-                    "$kapsule_bin" --title "$title" --geometry 100x30 \
+        ktrem)
+            if [ -n "$ktrem_active_fps" ] &&
+               [ -n "$ktrem_pty_burst_ms" ]; then
+                env KAPSULE_ACTIVE_FPS="$ktrem_active_fps" \
+                    KAPSULE_PTY_BURST_MS="$ktrem_pty_burst_ms" \
+                    "$ktrem_bin" --title "$title" --geometry 100x30 \
                     --command "$command" >/dev/null 2>&1 &
-            elif [ -n "$kapsule_active_fps" ]; then
-                env KAPSULE_ACTIVE_FPS="$kapsule_active_fps" \
-                    "$kapsule_bin" --title "$title" --geometry 100x30 \
+            elif [ -n "$ktrem_active_fps" ]; then
+                env KAPSULE_ACTIVE_FPS="$ktrem_active_fps" \
+                    "$ktrem_bin" --title "$title" --geometry 100x30 \
                     --command "$command" >/dev/null 2>&1 &
-            elif [ -n "$kapsule_pty_burst_ms" ]; then
-                env KAPSULE_PTY_BURST_MS="$kapsule_pty_burst_ms" \
-                    "$kapsule_bin" --title "$title" --geometry 100x30 \
+            elif [ -n "$ktrem_pty_burst_ms" ]; then
+                env KAPSULE_PTY_BURST_MS="$ktrem_pty_burst_ms" \
+                    "$ktrem_bin" --title "$title" --geometry 100x30 \
                     --command "$command" \
                     >/dev/null 2>&1 &
             else
-                "$kapsule_bin" --title "$title" --geometry 100x30 \
+                "$ktrem_bin" --title "$title" --geometry 100x30 \
                     --command "$command" >/dev/null 2>&1 &
             fi
             ;;
@@ -163,7 +163,7 @@ run_live_resize_benchmark() {
     terminal="$1"
     run="$2"
     tmp="$3"
-    title="kapsule-bench-live-resize-$terminal-$run-$$"
+    title="ktrem-bench-live-resize-$terminal-$run-$$"
     ready="$tmp.ready"
     command="$workload_script live_resize_content $tmp"
     cycles=120
@@ -312,11 +312,11 @@ run_clipboard_paste_benchmark() {
     terminal="$1"
     run="$2"
     tmp="$3"
-    title="kapsule-bench-clipboard-paste-$terminal-$run-$$"
+    title="ktrem-bench-clipboard-paste-$terminal-$run-$$"
     marker="KAPSULE_PASTE_DONE_${terminal}_${run}_$$"
     ready="$tmp.ready"
-    payload="/tmp/kapsule-bench-clipboard-payload-$terminal-$run-$$.txt"
-    owner_ready="/tmp/kapsule-bench-clipboard-owner-$terminal-$run-$$.ready"
+    payload="/tmp/ktrem-bench-clipboard-payload-$terminal-$run-$$.txt"
+    owner_ready="/tmp/ktrem-bench-clipboard-owner-$terminal-$run-$$.ready"
     command=
     owner_pid=
 
@@ -422,8 +422,8 @@ run_find_dialog_benchmark() {
     terminal="$1"
     run="$2"
     tmp="$3"
-    title="kapsule-bench-find-dialog-$terminal-$run-$$"
-    marker="kapsulefinddone"
+    title="ktrem-bench-find-dialog-$terminal-$run-$$"
+    marker="ktremfinddone"
     needle="${KAPSULE_BENCH_FIND_NEEDLE:-needle-critical}"
     ready="$tmp.ready"
     command="$workload_script find_dialog_target $tmp $marker $needle"
@@ -527,11 +527,11 @@ wait_for_result() {
     return 1
 }
 
-printf '# Kapsule terminal benchmark run %s\n' "$timestamp" > "$result_file"
+printf '# ktrem terminal benchmark run %s\n' "$timestamp" > "$result_file"
 
 for terminal in $terminals; do
-    if [ "$terminal" = kapsule ]; then
-        if [ -z "$kapsule_bin" ] || [ ! -x "$kapsule_bin" ]; then
+    if [ "$terminal" = ktrem ]; then
+        if [ -z "$ktrem_bin" ] || [ ! -x "$ktrem_bin" ]; then
             printf '{"terminal":"%s","error":"not_found"}\n' "$terminal" \
                 >> "$result_file"
             continue
@@ -544,7 +544,7 @@ for terminal in $terminals; do
     run=1
     while [ "$run" -le "$bench_runs" ]; do
         for workload in $workloads; do
-            tmp="/tmp/kapsule-bench-$terminal-$workload-$run-$$.json"
+            tmp="/tmp/ktrem-bench-$terminal-$workload-$run-$$.json"
             rm -f "$tmp"
             if [ "$workload" = "live_resize" ]; then
                 run_live_resize_benchmark "$terminal" "$run" "$tmp"
@@ -593,7 +593,7 @@ for terminal in $terminals; do
     done
 done
 
-summary_tmp="/tmp/kapsule-bench-summary-$$.jsonl"
+summary_tmp="/tmp/ktrem-bench-summary-$$.jsonl"
 awk '
     /^[{]/ && /"payload":/ {
         terminal = $0

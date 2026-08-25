@@ -430,7 +430,7 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     draw_context_menu(app, session);
     if(app->about_visible &&
        MessageDialog((MessageDialogProps){
-           "Kapsule",
+           "ktrem",
            "A Kryon terminal application.",
            "OK"
        }))

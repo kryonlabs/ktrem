@@ -273,9 +273,9 @@ static void sync_window_title(State *app)
         return;
     session = active_session(app);
     if(session != NULL && session_title(session)[0] != '\0')
-        snprintf(title, sizeof(title), "%s - Kapsule", session_title(session));
+        snprintf(title, sizeof(title), "%s - ktrem", session_title(session));
     else
-        snprintf(title, sizeof(title), "Kapsule");
+        snprintf(title, sizeof(title), "ktrem");
     if(strcmp(app->window_title, title) != 0) {
         SetWindowTitle(title);
         snprintf(app->window_title, sizeof(app->window_title), "%s", title);
@@ -599,21 +599,21 @@ int main(int argc, char **argv)
         return 0;
     if(!native_graphics_namespace_ready()) {
         fprintf(stderr,
-                "kterm: no Plan 9 graphics namespace; open kterm from Rill\n");
+                "ktrem: no Plan 9 graphics namespace; open ktrem from Rill\n");
         return 1;
     }
 #endif
     SetTraceLogLevel(LOG_WARNING);
     set_launch_window_flags(&app.launch);
     InitWindow(initial_window_width(&app.launch),
-               initial_window_height(&app.launch), "Kapsule");
+               initial_window_height(&app.launch), "ktrem");
     SetExitKey(KEY_NULL);
     if(!IsWindowReady() || GetFontDefault().texture.id == 0) {
-        fprintf(stderr, "kapsule: graphics backend failed to initialize\n");
+        fprintf(stderr, "ktrem: graphics backend failed to initialize\n");
         return 1;
     }
     apply_launch_window_state(&app.launch);
-    snprintf(app.window_title, sizeof(app.window_title), "Kapsule");
+    snprintf(app.window_title, sizeof(app.window_title), "ktrem");
     InitUI(frame_width(), frame_height(), 1.0f);
     app.window_focused = IsWindowFocused() ? 1 : 0;
     load_kryon_font(&app.config);

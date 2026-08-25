@@ -186,7 +186,7 @@ kapsule_state_init(KapsuleHost *host)
     launch_options_defaults(&app->launch);
     config_load(&app->config);
     app->config.command[0] = '\0';
-    snprintf(app->window_title, sizeof(app->window_title), "Kapsule");
+    snprintf(app->window_title, sizeof(app->window_title), "ktrem");
     app->window_focused = 0;
     load_kryon_font(&app->config);
     refresh_app_theme(app);
@@ -330,7 +330,7 @@ CreateAppHost(int abi_version, const char *project_path)
         return NULL;
     host->screen.id = "terminal";
     host->screen.group = "Applications";
-    host->screen.title = "Kapsule";
+    host->screen.title = "ktrem";
     host->host.userdata = host;
     host->host.screen_count = kapsule_screen_count;
     host->host.screen = kapsule_screen;

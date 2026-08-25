@@ -1,6 +1,6 @@
-# Kapsule
+# ktrem
 
-Kapsule is a standalone terminal application using Kryon for windowing,
+ktrem is a standalone terminal application using Kryon for windowing,
 rendering, input, and platform integration. The terminal emulator belongs here,
 not in Kryon.
 
@@ -12,7 +12,7 @@ make test
 
 Release builds are covered by `.github/workflows/release.yml`: pull requests
 and pushes run the Linux build/test path, and published GitHub Releases upload
-a `kapsule-linux-x86_64` tarball plus checksum. The remaining feature and
+a `ktrem-linux-x86_64` tarball plus checksum. The remaining feature and
 release-readiness plan is tracked in `docs/REMAINING_FEATURE_PLAN.md`.
 
 By default the build uses `../kryon`. Override with:
@@ -24,39 +24,39 @@ make ENGINE_DIR=/path/to/kryon
 Run options:
 
 ```sh
-kapsule --working-directory /path/to/project
-kapsule --default-working-directory /path/to/project
-kapsule --shell /bin/bash
-kapsule --command 'make test'
-kapsule --command='make test'
-kapsule -e 'make test'
-kapsule -x make test
-kapsule --title 'Build'
-kapsule --command 'make test' --tab --title 'Logs' --command 'tail -f build.log'
-kapsule --drop-down --title 'System' --command htop
-kapsule --geometry 120x40
-kapsule --fullscreen
-kapsule --maximize
-kapsule --hold
-kapsule --font-size 18
-kapsule --scrollback 10000
-kapsule --cursor-style bar
-kapsule --terminal-font /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
-kapsule --terminal-foreground '#f2f2f2' --terminal-background '#101010' --terminal-cursor '#f2f2f2'
-kapsule --terminal-selection-foreground '#101010' --terminal-selection-background '#5a8fd8'
+ktrem --working-directory /path/to/project
+ktrem --default-working-directory /path/to/project
+ktrem --shell /bin/bash
+ktrem --command 'make test'
+ktrem --command='make test'
+ktrem -e 'make test'
+ktrem -x make test
+ktrem --title 'Build'
+ktrem --command 'make test' --tab --title 'Logs' --command 'tail -f build.log'
+ktrem --drop-down --title 'System' --command htop
+ktrem --geometry 120x40
+ktrem --fullscreen
+ktrem --maximize
+ktrem --hold
+ktrem --font-size 18
+ktrem --scrollback 10000
+ktrem --cursor-style bar
+ktrem --terminal-font /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+ktrem --terminal-foreground '#f2f2f2' --terminal-background '#101010' --terminal-cursor '#f2f2f2'
+ktrem --terminal-selection-foreground '#101010' --terminal-selection-background '#5a8fd8'
 ```
 
-Kapsule accepts common xfce4-terminal launch aliases:
+ktrem accepts common xfce4-terminal launch aliases:
 `--command`/`-e`, `--execute`/`-x`, `--default-working-directory`,
 `--title`/`-T`, `--hold`/`-H`, `--geometry`, `--fullscreen`, `--maximize`,
 `--drop-down`, `--disable-server`, `--tab`, `--window`, and
 menubar/toolbar/border visibility flags. `--tab` starts additional tabs from
 command-line specs. `--drop-down` starts a borderless top-of-screen terminal
 window. `--window` is accepted as a separator and currently opens another tab
-because Kapsule does not have multi-window process/server support yet.
+because ktrem does not have multi-window process/server support yet.
 
-Config is read from `$XDG_CONFIG_HOME/kapsule/config` or
-`~/.config/kapsule/config`:
+Config is read from `$XDG_CONFIG_HOME/ktrem/config` or
+`~/.config/ktrem/config`:
 
 ```ini
 font_size=16
@@ -72,16 +72,16 @@ shell=/bin/bash
 working_directory=/home/me/project
 ```
 
-String values saved by Kapsule use backslash escapes for tabs, newlines, and
+String values saved by ktrem use backslash escapes for tabs, newlines, and
 literal backslashes.
 
-Kapsule restores open tabs on startup when no command is configured, including
+ktrem restores open tabs on startup when no command is configured, including
 the active tab plus each tab's working directory, shell, command, scroll
 position, and manual title override. The restore file lives under
-`$XDG_STATE_HOME/kapsule/session`
-or `~/.local/state/kapsule/session`.
+`$XDG_STATE_HOME/ktrem/session`
+or `~/.local/state/ktrem/session`.
 
-Kapsule chrome and default terminal foreground/background/cursor colors follow
+ktrem chrome and default terminal foreground/background/cursor colors follow
 the Kryon system theme. Explicit profile colors and OSC color changes stay in
 control until reset.
 
@@ -169,7 +169,7 @@ Terminal graphics:
 - DECRQSS status-string reports answer SGR, scroll-margin, cursor-style, and
   character-protection queries with valid DCS responses.
 - XTGETTCAP (`DCS + q`) reports the terminal name, color capabilities, and the
-  special-key sequences Kapsule actually emits.
+  special-key sequences ktrem actually emits.
 - Horizontal tab set/clear controls are supported, including clearing all tab
   stops for terminal UI alignment.
 - DEC private cursor-position reports and DEC screen-alignment test are

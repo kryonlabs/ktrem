@@ -327,7 +327,7 @@ static int config_terminal_cursor_color_parses(void)
 
 static int config_save_load_escapes_profile_text(void)
 {
-    char dir[] = "/tmp/kapsule-config-test-XXXXXX";
+    char dir[] = "/tmp/ktrem-config-test-XXXXXX";
     const char *old_xdg;
     char old_xdg_copy[1024];
     Config saved;
@@ -349,7 +349,7 @@ static int config_save_load_escapes_profile_text(void)
     config_apply_arg(&saved, "scrollback", "12000");
     config_apply_arg(&saved, "cursor-style", "bar");
     config_apply_arg(&saved, "shell", "/bin/sh");
-    config_apply_arg(&saved, "working_directory", "/tmp/kapsule profile");
+    config_apply_arg(&saved, "working_directory", "/tmp/ktrem profile");
     config_apply_arg(&saved, "command", "printf 'a\\\\b'\nnext");
     config_apply_arg(&saved, "terminal_font", "/tmp/fonts/mono\\tab\t.ttf");
     config_apply_arg(&saved, "terminal-cursor", "#123456");
@@ -389,7 +389,7 @@ static int launch_options_accept_xfce_aliases(void)
     LaunchOptions options;
     char error[256];
     char *argv[] = {
-        "kapsule",
+        "ktrem",
         "--default-working-directory=/tmp/project",
         "--command=printf ok",
         "--font-size=20",
@@ -431,7 +431,7 @@ static int launch_options_execute_quotes_remainder(void)
     LaunchOptions options;
     char error[256];
     char *argv[] = {
-        "kapsule",
+        "ktrem",
         "-x",
         "printf",
         "a b",
@@ -459,7 +459,7 @@ static int launch_options_reject_bad_geometry(void)
     Config config;
     LaunchOptions options;
     char error[256];
-    char *argv[] = {"kapsule", "--geometry", "wide"};
+    char *argv[] = {"ktrem", "--geometry", "wide"};
 
     config_defaults(&config);
     launch_options_defaults(&options);
@@ -479,7 +479,7 @@ static int launch_options_accept_drop_down(void)
     LaunchOptions options;
     char error[256];
     char *argv[] = {
-        "kapsule",
+        "ktrem",
         "--default-display=:7",
         "--drop-down",
         "--tab",
@@ -512,7 +512,7 @@ static int launch_options_builds_tab_specs(void)
     LaunchOptions options;
     char error[256];
     char *argv[] = {
-        "kapsule",
+        "ktrem",
         "--command=make test",
         "--title",
         "Build",
@@ -553,7 +553,7 @@ static int launch_options_tab_separator_at_start(void)
     LaunchOptions options;
     char error[256];
     char *argv[] = {
-        "kapsule",
+        "ktrem",
         "--tab",
         "--title",
         "One",
@@ -585,7 +585,7 @@ static int launch_options_reject_too_many_tabs(void)
     LaunchOptions options;
     char error[256];
     char *argv[] = {
-        "kapsule",
+        "ktrem",
         "--tab",
         "--tab",
         "--tab",
@@ -611,7 +611,7 @@ static int launch_options_reject_too_many_tabs(void)
 
 static int session_store_roundtrips_escaped_tabs(void)
 {
-    char dir[] = "/tmp/kapsule-session-test-XXXXXX";
+    char dir[] = "/tmp/ktrem-session-test-XXXXXX";
     const char *old_xdg;
     char old_xdg_copy[1024];
     Session sessions[2];
@@ -728,7 +728,7 @@ static int palette_defaults_follow_kryon_theme_tokens(void)
     TerminalPaneColors terminal_colors;
     TerminalPanePalette terminal_palette;
 
-    SetSystemThemePalette("Kapsule Test",
+    SetSystemThemePalette("ktrem Test",
                           (Color){10, 20, 30, 255},
                           (Color){40, 50, 60, 255},
                           (Color){210, 220, 230, 255},
@@ -944,7 +944,7 @@ static int bash_with_temp_bashrc_outputs(const char *name,
                                          const char *marker)
 {
     TerminalState terminal;
-    char dir[] = "/tmp/kapsule-bashrc-test-XXXXXX";
+    char dir[] = "/tmp/ktrem-bashrc-test-XXXXXX";
     char bashrc[sizeof(dir) + 16];
     char old_home_copy[512];
     const char *old_home;
@@ -1019,8 +1019,8 @@ static int command_bash_sources_bashrc(void)
 {
     return bash_with_temp_bashrc_outputs(
         "command bashrc test",
-        "kapsule_marker() { echo KAPSULE_COMMAND_BASHRC_MARKER; }\n",
-        "kapsule_marker", "KAPSULE_COMMAND_BASHRC_MARKER");
+        "ktrem_marker() { echo KAPSULE_COMMAND_BASHRC_MARKER; }\n",
+        "ktrem_marker", "KAPSULE_COMMAND_BASHRC_MARKER");
 }
 
 static int finish_capture(const char *name, TerminalState *terminal, int read_fd,
@@ -2290,13 +2290,13 @@ static int osc_current_directory_updates_session_title(void)
     snprintf(session.cwd, sizeof(session.cwd), "/home/wao");
     session_sync_terminal_metadata(&session);
     terminal_feed(&session.terminal,
-                  "\x1b]7;file://omega/home/wao/Projects/Kapsule%20Test\a",
+                  "\x1b]7;file://omega/home/wao/Projects/ktrem%20Test\a",
                   (int)strlen(
-                      "\x1b]7;file://omega/home/wao/Projects/Kapsule%20Test\a"));
+                      "\x1b]7;file://omega/home/wao/Projects/ktrem%20Test\a"));
     session_sync_terminal_metadata(&session);
     session_current_cwd(&session, cwd, sizeof(cwd));
-    if(strcmp(cwd, "/home/wao/Projects/Kapsule Test") != 0 ||
-       strcmp(session_title(&session), "Kapsule Test") != 0) {
+    if(strcmp(cwd, "/home/wao/Projects/ktrem Test") != 0 ||
+       strcmp(session_title(&session), "ktrem Test") != 0) {
         fprintf(stderr, "osc current directory sync failed\n");
         session_close(&session);
         return 0;
@@ -2310,11 +2310,11 @@ static int osc_current_directory_updates_session_title(void)
         return 0;
     }
     terminal_feed(&session.terminal,
-                  "\x1b]2;wao@omega:/mnt/storage/Projects/kapsule\a",
+                  "\x1b]2;wao@omega:/mnt/storage/Projects/ktrem\a",
                   (int)strlen(
-                      "\x1b]2;wao@omega:/mnt/storage/Projects/kapsule\a"));
+                      "\x1b]2;wao@omega:/mnt/storage/Projects/ktrem\a"));
     session_sync_terminal_metadata(&session);
-    if(strcmp(session_title(&session), "kapsule") != 0) {
+    if(strcmp(session_title(&session), "ktrem") != 0) {
         fprintf(stderr, "path-like osc title was not shortened\n");
         session_close(&session);
         return 0;
@@ -2748,20 +2748,20 @@ static int selection_selects_words_and_lines(void)
 
     terminal_init(&terminal);
     terminal_resize(&terminal, 48, 3);
-    terminal_feed(&terminal, "open /tmp/kapsule-test.txt now\r\nsecond line",
+    terminal_feed(&terminal, "open /tmp/ktrem-test.txt now\r\nsecond line",
                   (int)strlen(
-                      "open /tmp/kapsule-test.txt now\r\nsecond line"));
+                      "open /tmp/ktrem-test.txt now\r\nsecond line"));
     selection_clear(&selection);
     selection_select_word(&selection, &terminal, 0, 8);
     if(!selection_collect_text(&selection, &terminal, text, sizeof(text)) ||
-       strcmp(text, "/tmp/kapsule-test.txt") != 0) {
+       strcmp(text, "/tmp/ktrem-test.txt") != 0) {
         fprintf(stderr, "word selection expected path, got '%s'\n", text);
         terminal_close(&terminal);
         return 0;
     }
     if(!selection_contains(&selection, 0, 5) ||
-       !selection_contains(&selection, 0, 25) ||
-       selection_contains(&selection, 0, 26)) {
+       !selection_contains(&selection, 0, 23) ||
+       selection_contains(&selection, 0, 24)) {
         fprintf(stderr, "word selection contains range failed\n");
         terminal_close(&terminal);
         return 0;
@@ -2884,7 +2884,7 @@ int main(void)
     const char *cleared = "\x1b[2Jclear";
     const char *delete_case = "\r\x1b[2Kabcd\x1b[2D\x1b[PZ";
     const char *bracketed = "\x1b[?2004h";
-    const char *osc = "\x1b]2;Kapsule\a\x1b]10;#112233\a"
+    const char *osc = "\x1b]2;ktrem\a\x1b]10;#112233\a"
                       "\x1b]11;rgb:4455/6677/8899\x1b\\"
                       "\x1b]12;rgb:aa/bb/cc\a"
                       "\x1b]13;#778899\a"
@@ -2892,7 +2892,7 @@ int main(void)
                       "\x1b]17;#224466\a"
                       "\x1b]19;#ddeeff\a"
                       "\x1b]4;1;#010203;2;rgb:1020/3040/5060\a"
-                      "\x1b]7;file://omega/home/wao/Projects/Kapsule%20Test\a"
+                      "\x1b]7;file://omega/home/wao/Projects/ktrem%20Test\a"
                       "\x1b]52;c;aGVsbG8=\a";
     const char *alternate = "\x1b[?1049hALT\x1b[?1049l";
     const char *scroll = "one\r\ntwo\r\nthree\r\nfour\r\nfive\r\n";
@@ -3013,7 +3013,7 @@ int main(void)
         return 1;
     }
     terminal_feed(&terminal, osc, (int)strlen(osc));
-    if(strcmp(terminal.title, "Kapsule") != 0 ||
+    if(strcmp(terminal.title, "ktrem") != 0 ||
        terminal.icon_title[0] != '\0' ||
        terminal.default_fg != (COLOR_TRUE_RGB | 0x112233) ||
        terminal.default_bg != (COLOR_TRUE_RGB | 0x446688) ||
@@ -3025,7 +3025,7 @@ int main(void)
        terminal.palette_overrides[1] != (COLOR_TRUE_RGB | 0x010203) ||
        terminal.palette_overrides[2] != (COLOR_TRUE_RGB | 0x103050) ||
        strcmp(terminal.current_directory,
-              "/home/wao/Projects/Kapsule Test") != 0 ||
+              "/home/wao/Projects/ktrem Test") != 0 ||
        !UIClipboardBufferHasPendingWrite(&terminal.clipboard) ||
        strcmp(GetUIClipboardBufferText(&terminal.clipboard), "hello") != 0) {
         fprintf(stderr, "osc title/color failed\n");
@@ -3035,7 +3035,7 @@ int main(void)
                   "\x1b]2x;Wrong\a\x1b]x;Wrong\a\x1b]10x;#000000\a",
                   (int)strlen("\x1b]2x;Wrong\a\x1b]x;Wrong\a"
                               "\x1b]10x;#000000\a"));
-    if(strcmp(terminal.title, "Kapsule") != 0 ||
+    if(strcmp(terminal.title, "ktrem") != 0 ||
        terminal.icon_title[0] != '\0' ||
        terminal.default_fg != (COLOR_TRUE_RGB | 0x112233)) {
         fprintf(stderr, "malformed osc command code changed state\n");
@@ -3043,7 +3043,7 @@ int main(void)
     }
     terminal_feed(&terminal, "\x1b]1;Icon\a",
                   (int)strlen("\x1b]1;Icon\a"));
-    if(strcmp(terminal.title, "Kapsule") != 0 ||
+    if(strcmp(terminal.title, "ktrem") != 0 ||
        strcmp(terminal.icon_title, "Icon") != 0) {
         fprintf(stderr, "osc icon title separation failed\n");
         return 1;

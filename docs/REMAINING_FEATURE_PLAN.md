@@ -1,12 +1,12 @@
-# Kapsule Remaining Feature Plan
+# ktrem Remaining Feature Plan
 
-Kapsule is currently faster than xfce4-terminal on the saved synthetic and
+ktrem is currently faster than xfce4-terminal on the saved synthetic and
 externally driven Xvfb benchmark set. The full xfce4-terminal alternative goal
 is still open until the feature and release-readiness gaps below are complete.
 
 ## Current Measured Status
 
-Saved benchmark results show Kapsule ahead on average for:
+Saved benchmark results show ktrem ahead on average for:
 
 - Startup payload, ANSI flood, Unicode output, alternate-screen redraw, dense
   SGR styling, wrapped output, scrollback flood, and cursor matrix updates.
@@ -16,7 +16,7 @@ Saved benchmark results show Kapsule ahead on average for:
 The benchmark files are in `benchmarks/results/`. These are directional Xvfb
 benchmarks, not a substitute for broader real-desktop validation.
 
-## Must Finish Before Calling Kapsule a Full Alternative
+## Must Finish Before Calling ktrem a Full Alternative
 
 ### 1. Release And Installability
 
@@ -24,7 +24,7 @@ benchmarks, not a substitute for broader real-desktop validation.
   checkout.
 - Publish Linux release assets from GitHub Releases.
 - Add a `.desktop` file, app icon install target, and documented install path.
-- Decide whether Kapsule should advertise a custom `TERM` and ship terminfo, or
+- Decide whether ktrem should advertise a custom `TERM` and ship terminfo, or
   keep xterm-compatible defaults.
 - Add changelog/version automation before the first numbered release.
 
@@ -76,7 +76,7 @@ benchmarks, not a substitute for broader real-desktop validation.
 
 Kryon's current raylib/SDL backend is good enough for the measured parity set.
 The next major performance step should be a Kryon terminal-grid primitive, not
-a Kapsule-only renderer and not a move away from Kryon.
+a ktrem-only renderer and not a move away from Kryon.
 
 The renderer should use:
 
@@ -87,5 +87,5 @@ The renderer should use:
   first implementation.
 - A future `wgpu-native`/WebGPU backend only after the abstraction is proven.
 
-This keeps Kapsule as the showcase for Kryon while improving Kryon for other
+This keeps ktrem as the showcase for Kryon while improving Kryon for other
 applications too.

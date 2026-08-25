@@ -2,7 +2,7 @@
 set -eu
 
 workload="${1:-startup}"
-out="${2:-/tmp/kapsule-bench-result.json}"
+out="${2:-/tmp/ktrem-bench-result.json}"
 
 now_ns() {
     date +%s%N
@@ -21,7 +21,7 @@ json_result() {
 
 startup() {
     start_ns=$(now_ns)
-    printf 'kapsule benchmark startup\n'
+    printf 'ktrem benchmark startup\n'
     end_ns=$(now_ns)
     json_result "startup" "$start_ns" "$end_ns" 1 26
 }
@@ -47,7 +47,7 @@ unicode_table() {
     lines=6000
     i=1
     while [ "$i" -le "$lines" ]; do
-        printf '│ %06d │ Kryon Λambda │ Kapsule ✓ │ width 測試 │ box ──┼── │\n' "$i"
+        printf '│ %06d │ Kryon Λambda │ ktrem ✓ │ width 測試 │ box ──┼── │\n' "$i"
         i=$((i + 1))
     done
     end_ns=$(now_ns)
@@ -100,7 +100,7 @@ wrap_reflow() {
         printf 'abcdefghijklmnopqrstuvwxyz0123456789'
         printf ' / terminal reflow candidate / '
         printf 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-        printf ' / kryon kapsule xfce compatibility width sample '
+        printf ' / kryon ktrem xfce compatibility width sample '
         printf '測試✓Λ │ ──┼── end\n'
         i=$((i + 1))
     done
@@ -113,7 +113,7 @@ scrollback_flood() {
     lines=50000
     i=1
     while [ "$i" -le "$lines" ]; do
-        printf 'scrollback %05d abcdefghijklmnopqrstuvwxyz 0123456789 Kapsule Kryon\n' "$i"
+        printf 'scrollback %05d abcdefghijklmnopqrstuvwxyz 0123456789 ktrem Kryon\n' "$i"
         i=$((i + 1))
     done
     end_ns=$(now_ns)
@@ -165,9 +165,9 @@ hyperlink_grid() {
     while [ "$i" -le "$lines" ]; do
         printf 'link-%05d ' "$i"
         printf '\033]8;id=item-%05d;https://kapsule.kryonlabs.com/item/%05d\033\\' "$i" "$i"
-        printf 'Kapsule benchmark link %05d' "$i"
+        printf 'ktrem benchmark link %05d' "$i"
         printf '\033]8;;\033\\'
-        printf ' status=%03d path=/tmp/kapsule/%05d\n' "$((i % 200))" "$i"
+        printf ' status=%03d path=/tmp/ktrem/%05d\n' "$((i % 200))" "$i"
         i=$((i + 1))
     done
     end_ns=$(now_ns)

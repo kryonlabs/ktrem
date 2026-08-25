@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "slug": "kapsule",
-  "name": "Kapsule",
+  "slug": "ktrem",
+  "name": "ktrem",
   "summary": "Native terminal application with sessions, tabs, and focused developer workflows.",
   "repository": {
     "platform": "github",
