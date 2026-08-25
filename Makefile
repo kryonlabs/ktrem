@@ -51,10 +51,13 @@ CMARK_EXT_A = $(ENGINE_BUILD_DIR)/vendor/cmark-gfm/extensions/libcmark-gfm-exten
 BOX2D_A = $(ENGINE_BUILD_DIR)/vendor/box2d/src/libbox2d.a
 
 APP = $(BUILD_DIR)/bin/kapsule
+HOST_LIB = $(BUILD_DIR)/lib/libkapsule_host.a
 TEST = $(BUILD_DIR)/tests/terminal_test
 PARSER_BENCH = $(BUILD_DIR)/benchmarks/parser_replay
 SRC_FILES := $(wildcard src/*.c)
 OBJS = $(patsubst src/%.c,$(BUILD_DIR)/src/%.o,$(SRC_FILES))
+HOST_SRC_FILES := $(filter-out src/main.c,$(SRC_FILES))
+HOST_OBJS = $(patsubst src/%.c,$(BUILD_DIR)/src/%.o,$(HOST_SRC_FILES))
 TEST_OBJS = $(BUILD_DIR)/tests/terminal_test.o $(BUILD_DIR)/src/config.o \
 	$(BUILD_DIR)/src/launch_options.o \
 	$(BUILD_DIR)/src/terminal.o \
@@ -117,6 +120,7 @@ endif
 CFLAGS ?= -Wall -Wextra -O2
 CPPFLAGS += -Isrc -I$(ENGINE_DIR)/include \
 	$(BACKEND_CFLAGS) $(SYSTEM_THEME_CFLAGS) \
+	-DKAPSULE_KRYON_FONT_PATH=\"$(abspath $(ENGINE_DIR))/fonts/noto/NotoSans-Regular.ttf\" \
 	-DHAS_LIBOQS=1 -I$(ENGINE_BUILD_DIR)/vendor/liboqs/include \
 	-DHAS_LIBCURL=1 -DCURL_STATICLIB -I$(ENGINE_BUILD_DIR)/vendor/curl/include \
 	-DKRYON_HAS_CMARK_GFM=1 \
@@ -128,7 +132,7 @@ LDLIBS += $(BACKEND_LIBS) $(BOX2D_A) $(BACKEND_LDLIBS) $(LIBOQS_A) \
 
 .PHONY: all run test benchmark-parser clean install engine
 
-all: $(APP)
+all: $(APP) $(HOST_LIB)
 
 engine:
 	$(MAKE) -C $(ENGINE_DIR) KRYON_BACKEND=$(KRYON_BACKEND) \
@@ -138,6 +142,9 @@ $(APP): engine $(OBJS) $(ENGINE_LIB) $(BACKEND_LIBS) | $(BUILD_DIR)/bin
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(OBJS) \
 		-Wl,--whole-archive $(ENGINE_LIB) -Wl,--no-whole-archive \
 		$(LDLIBS)
+
+$(HOST_LIB): engine $(HOST_OBJS) | $(BUILD_DIR)/lib
+	ar rcs $@ $(HOST_OBJS)
 
 $(TEST): engine $(TEST_OBJS) $(ENGINE_CLIPBOARD_OBJ) \
 		$(ENGINE_TERMINAL_PANE_CLIPBOARD_OBJ) \
@@ -184,7 +191,7 @@ $(BUILD_DIR)/tests/%.o: tests/%.c src/terminal.h | $(BUILD_DIR)/tests
 $(BUILD_DIR)/benchmarks/%.o: benchmarks/%.c src/terminal.h | $(BUILD_DIR)/benchmarks
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/bin $(BUILD_DIR)/src $(BUILD_DIR)/tests $(BUILD_DIR)/benchmarks:
+$(BUILD_DIR)/bin $(BUILD_DIR)/lib $(BUILD_DIR)/src $(BUILD_DIR)/tests $(BUILD_DIR)/benchmarks:
 	mkdir -p $@
 
 run: $(APP)
