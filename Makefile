@@ -5,6 +5,7 @@ KRYON_BACKEND ?= raylib
 PLAN9PORT_DIR ?= /mnt/storage/Projects/plan9port
 PREFIX ?= $(HOME)/.local
 BINDIR ?= $(PREFIX)/bin
+RILL_APP_HOSTDIR ?= $(PREFIX)/lib/rill/apps
 INSTALL ?= install
 
 UNAME_S := $(shell uname -s 2>/dev/null)
@@ -52,6 +53,7 @@ BOX2D_A = $(ENGINE_BUILD_DIR)/vendor/box2d/src/libbox2d.a
 
 APP = $(BUILD_DIR)/bin/kapsule
 HOST_LIB = $(BUILD_DIR)/lib/libkapsule_host.a
+HOST_SO = $(BUILD_DIR)/lib/kapsule-host.so
 TEST = $(BUILD_DIR)/tests/terminal_test
 PARSER_BENCH = $(BUILD_DIR)/benchmarks/parser_replay
 SRC_FILES := $(wildcard src/*.c)
@@ -118,6 +120,9 @@ PLATFORM_LDLIBS ?=
 endif
 
 CFLAGS ?= -Wall -Wextra -O2
+ifeq ($(PLATFORM),linux)
+  CFLAGS += -fPIC
+endif
 CPPFLAGS += -Isrc -I$(ENGINE_DIR)/include \
 	$(BACKEND_CFLAGS) $(SYSTEM_THEME_CFLAGS) \
 	-DKAPSULE_KRYON_FONT_PATH=\"$(abspath $(ENGINE_DIR))/fonts/noto/NotoSans-Regular.ttf\" \
@@ -132,7 +137,7 @@ LDLIBS += $(BACKEND_LIBS) $(BOX2D_A) $(BACKEND_LDLIBS) $(LIBOQS_A) \
 
 .PHONY: all run test benchmark-parser clean install engine
 
-all: $(APP) $(HOST_LIB)
+all: $(APP) $(HOST_LIB) $(HOST_SO)
 
 engine:
 	$(MAKE) -C $(ENGINE_DIR) KRYON_BACKEND=$(KRYON_BACKEND) \
@@ -145,6 +150,9 @@ $(APP): engine $(OBJS) $(ENGINE_LIB) $(BACKEND_LIBS) | $(BUILD_DIR)/bin
 
 $(HOST_LIB): engine $(HOST_OBJS) | $(BUILD_DIR)/lib
 	ar rcs $@ $(HOST_OBJS)
+
+$(HOST_SO): engine $(HOST_OBJS) | $(BUILD_DIR)/lib
+	$(CC) $(CFLAGS) -shared -o $@ $(HOST_OBJS)
 
 $(TEST): engine $(TEST_OBJS) $(ENGINE_CLIPBOARD_OBJ) \
 		$(ENGINE_TERMINAL_PANE_CLIPBOARD_OBJ) \
@@ -203,9 +211,10 @@ test: $(TEST)
 benchmark-parser: $(PARSER_BENCH)
 	$(PARSER_BENCH)
 
-install: $(APP)
-	mkdir -p $(DESTDIR)$(BINDIR)
+install: $(APP) $(HOST_SO)
+	mkdir -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(RILL_APP_HOSTDIR)
 	$(INSTALL) -m 755 $(APP) $(DESTDIR)$(BINDIR)/kapsule
+	$(INSTALL) -m 755 $(HOST_SO) $(DESTDIR)$(RILL_APP_HOSTDIR)/kapsule-host.so
 
 clean:
 	rm -rf $(BUILD_ROOT)
