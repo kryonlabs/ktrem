@@ -11,6 +11,10 @@
 
 #include "kryon.h"
 
+#ifdef KRYON_NATIVE_PLAN9
+#include "kryon_plan9.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -136,6 +140,57 @@ static int *terminal_cjk_codepoints(int *out_count)
     *out_count = builder.count;
     return builder.values;
 }
+
+#ifdef KRYON_NATIVE_PLAN9
+static const char *native_rill_control_path(void)
+{
+    const char *path;
+
+    path = getenv("rillctl");
+    if(path != NULL && path[0] != '\0')
+        return path;
+    path = getenv("RILLCTL");
+    if(path != NULL && path[0] != '\0')
+        return path;
+    path = getenv("RILL_COMMAND_FILE");
+    if(path != NULL && path[0] != '\0')
+        return path;
+    return NULL;
+}
+
+static int native_request_rill_terminal(void)
+{
+    const char *path;
+    FILE *file;
+
+    path = native_rill_control_path();
+    if(path == NULL)
+        return 0;
+    file = fopen(path, "a");
+    if(file == NULL)
+        return 0;
+    fprintf(file, "open kterm\n");
+    fclose(file);
+    return 1;
+}
+
+static int native_can_open(const char *path, int mode)
+{
+    int fd;
+
+    fd = open((char *)path, mode);
+    if(fd < 0)
+        return 0;
+    close(fd);
+    return 1;
+}
+
+static int native_graphics_namespace_ready(void)
+{
+    return native_can_open("/dev/draw/new", OREAD) &&
+           native_can_open("/dev/mouse", OREAD);
+}
+#endif
 
 static int path_in_list(const char *const *paths, int count, const char *path)
 {
@@ -543,6 +598,15 @@ int main(int argc, char **argv)
                 "invalid launch options");
         return 2;
     }
+#ifdef KRYON_NATIVE_PLAN9
+    if(native_request_rill_terminal())
+        return 0;
+    if(!native_graphics_namespace_ready()) {
+        fprintf(stderr,
+                "kterm: no Plan 9 graphics namespace; open kterm from Rill\n");
+        return 1;
+    }
+#endif
     SetTraceLogLevel(LOG_WARNING);
     set_launch_window_flags(&app.launch);
     InitWindow(initial_window_width(&app.launch),
