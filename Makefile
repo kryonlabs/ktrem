@@ -1,6 +1,8 @@
 CC ?= cc
 ENGINE_DIR ?= ../kryon
 BUILD_ROOT ?= build
+KRYON_BACKEND ?= raylib
+PLAN9PORT_DIR ?= /mnt/storage/Projects/plan9port
 PREFIX ?= $(HOME)/.local
 BINDIR ?= $(PREFIX)/bin
 INSTALL ?= install
@@ -23,7 +25,8 @@ else
 endif
 
 BUILD_DIR ?= $(BUILD_ROOT)/$(PLATFORM)-$(ARCH)
-ENGINE_BUILD_DIR ?= $(ENGINE_DIR)/build/$(PLATFORM)-$(ARCH)
+ENGINE_BUILD_ROOT ?= $(ENGINE_DIR)/build
+ENGINE_BUILD_DIR ?= $(ENGINE_BUILD_ROOT)/$(PLATFORM)-$(ARCH)
 ENGINE_LIB = $(ENGINE_BUILD_DIR)/libkryon.a
 ENGINE_CLIPBOARD_OBJ = $(ENGINE_BUILD_DIR)/ui/ui_clipboard.o
 ENGINE_TERMINAL_PANE_CLIPBOARD_OBJ = $(ENGINE_BUILD_DIR)/ui/terminal_pane_clipboard.o
@@ -87,6 +90,17 @@ RAY_SDL_LDLIBS ?= $(shell pkg-config --libs sdl2 2>/dev/null)
 RAY_GL_CFLAGS ?= $(shell pkg-config --cflags libdrm gbm egl glesv2 2>/dev/null)
 RAY_GL_LDLIBS ?= $(shell pkg-config --libs libdrm gbm egl glesv2 2>/dev/null)
 RAY_LDLIBS ?= $(strip $(RAY_SDL_LDLIBS) $(RAY_GL_LDLIBS))
+ifeq ($(KRYON_BACKEND),raylib)
+BACKEND_CFLAGS = $(RAY_SDL_CFLAGS) $(RAY_GL_CFLAGS)
+BACKEND_LIBS = $(RAYLIB_A)
+BACKEND_LDLIBS = $(RAY_LDLIBS)
+else ifeq ($(KRYON_BACKEND),libdraw)
+BACKEND_CFLAGS = -DKRYON_BACKEND_LIBDRAW -I$(PLAN9PORT_DIR)/include
+BACKEND_LIBS =
+BACKEND_LDLIBS = -L$(PLAN9PORT_DIR)/lib -ldraw -lmemdraw -lmux -lthread -l9
+else
+$(error Unknown KRYON_BACKEND '$(KRYON_BACKEND)' (expected raylib or libdraw))
+endif
 SYSTEM_THEME_PKG := $(shell if pkg-config --exists gtk+-3.0 2>/dev/null; then printf '%s' gtk+-3.0; fi)
 SYSTEM_THEME_CFLAGS := $(shell if [ -n "$(SYSTEM_THEME_PKG)" ]; then pkg-config --cflags $(SYSTEM_THEME_PKG); fi)
 SYSTEM_THEME_LDLIBS := $(shell if [ -n "$(SYSTEM_THEME_PKG)" ]; then pkg-config --libs $(SYSTEM_THEME_PKG); fi)
@@ -102,13 +116,13 @@ endif
 
 CFLAGS ?= -Wall -Wextra -O2
 CPPFLAGS += -Isrc -I$(ENGINE_DIR)/include \
-	$(RAY_SDL_CFLAGS) $(RAY_GL_CFLAGS) $(SYSTEM_THEME_CFLAGS) \
+	$(BACKEND_CFLAGS) $(SYSTEM_THEME_CFLAGS) \
 	-DHAS_LIBOQS=1 -I$(ENGINE_BUILD_DIR)/vendor/liboqs/include \
 	-DHAS_LIBCURL=1 -DCURL_STATICLIB -I$(ENGINE_BUILD_DIR)/vendor/curl/include \
 	-DKRYON_HAS_CMARK_GFM=1 \
 	-I$(ENGINE_DIR)/vendor/cmark-gfm/src -I$(ENGINE_DIR)/vendor/cmark-gfm/extensions \
 	-I$(ENGINE_BUILD_DIR)/vendor/cmark-gfm/src -I$(ENGINE_BUILD_DIR)/vendor/cmark-gfm/extensions
-LDLIBS += $(RAYLIB_A) $(BOX2D_A) $(RAY_LDLIBS) $(LIBOQS_A) \
+LDLIBS += $(BACKEND_LIBS) $(BOX2D_A) $(BACKEND_LDLIBS) $(LIBOQS_A) \
 	$(CURL_A) -lssl -lcrypto -lpthread $(CMARK_EXT_A) $(CMARK_A) \
 	$(SYSTEM_THEME_LDLIBS) $(CURL_CODEC_LDLIBS) -lz -lm $(PLATFORM_LDLIBS)
 
@@ -117,9 +131,10 @@ LDLIBS += $(RAYLIB_A) $(BOX2D_A) $(RAY_LDLIBS) $(LIBOQS_A) \
 all: $(APP)
 
 engine:
-	$(MAKE) -C $(ENGINE_DIR) all
+	$(MAKE) -C $(ENGINE_DIR) KRYON_BACKEND=$(KRYON_BACKEND) \
+		BUILD_ROOT=$(ENGINE_BUILD_ROOT) $(ENGINE_LIB)
 
-$(APP): engine $(OBJS) $(ENGINE_LIB) $(RAYLIB_A) | $(BUILD_DIR)/bin
+$(APP): engine $(OBJS) $(ENGINE_LIB) $(BACKEND_LIBS) | $(BUILD_DIR)/bin
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(OBJS) \
 		-Wl,--whole-archive $(ENGINE_LIB) -Wl,--no-whole-archive \
 		$(LDLIBS)
@@ -155,7 +170,7 @@ $(TEST): engine $(TEST_OBJS) $(ENGINE_CLIPBOARD_OBJ) \
 		$(ENGINE_TERMINAL_PANE_SIXEL_OBJ) \
 		$(ENGINE_TERMINAL_PANE_TEXT_OBJ)
 
-$(PARSER_BENCH): engine $(PARSER_BENCH_OBJS) $(ENGINE_LIB) $(RAYLIB_A) | $(BUILD_DIR)/benchmarks
+$(PARSER_BENCH): engine $(PARSER_BENCH_OBJS) $(ENGINE_LIB) $(BACKEND_LIBS) | $(BUILD_DIR)/benchmarks
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(PARSER_BENCH_OBJS) \
 		-Wl,--whole-archive $(ENGINE_LIB) -Wl,--no-whole-archive \
 		$(LDLIBS)

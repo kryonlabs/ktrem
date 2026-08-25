@@ -17,15 +17,15 @@ enum {
 
 void draw_context_menu(State *app, Session *session)
 {
-    UIMenuItem items[] = {
-        {UI_MENU_COMMAND, "Copy", "Ctrl+Shift+C", CONTEXT_COPY, 0, 0, NULL, 0},
-        {UI_MENU_COMMAND, "Paste", "Ctrl+Shift+V", CONTEXT_PASTE, 0, 0, NULL, 0},
-        {UI_MENU_COMMAND, "Paste Primary", NULL, CONTEXT_PASTE_PRIMARY, 0, 0, NULL, 0},
-        {UI_MENU_COMMAND, "Select All", "Ctrl+Shift+A", CONTEXT_SELECT_ALL, 0, 0, NULL, 0},
-        {UI_MENU_SEPARATOR, NULL, NULL, 0, 0, 0, NULL, 0},
-        {UI_MENU_COMMAND, "Find", "Ctrl+Shift+F", CONTEXT_FIND, 0, 0, NULL, 0},
-        {UI_MENU_COMMAND, "Find Next", "Ctrl+Shift+G", CONTEXT_FIND_NEXT, 0, 0, NULL, 0},
-        {UI_MENU_COMMAND, "Find Previous", "Ctrl+Shift+B", CONTEXT_FIND_PREVIOUS, 0, 0, NULL, 0}
+    MenuItem items[] = {
+        {MenuCommand, "Copy", "Ctrl+Shift+C", CONTEXT_COPY, 0, 0, NULL, 0},
+        {MenuCommand, "Paste", "Ctrl+Shift+V", CONTEXT_PASTE, 0, 0, NULL, 0},
+        {MenuCommand, "Paste Primary", NULL, CONTEXT_PASTE_PRIMARY, 0, 0, NULL, 0},
+        {MenuCommand, "Select All", "Ctrl+Shift+A", CONTEXT_SELECT_ALL, 0, 0, NULL, 0},
+        {MenuSeparator, NULL, NULL, 0, 0, 0, NULL, 0},
+        {MenuCommand, "Find", "Ctrl+Shift+F", CONTEXT_FIND, 0, 0, NULL, 0},
+        {MenuCommand, "Find Next", "Ctrl+Shift+G", CONTEXT_FIND_NEXT, 0, 0, NULL, 0},
+        {MenuCommand, "Find Previous", "Ctrl+Shift+B", CONTEXT_FIND_PREVIOUS, 0, 0, NULL, 0}
     };
     int command;
 
@@ -33,7 +33,7 @@ void draw_context_menu(State *app, Session *session)
         return;
     items[0].disabled = !app->selection.active;
     items[2].disabled = !primary_selection_available();
-    command = ContextMenu((UIContextMenu){
+    command = ContextMenu((ContextMenuProps){
         1300,
         app->viewport,
         items,
