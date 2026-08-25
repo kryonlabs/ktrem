@@ -23,7 +23,7 @@ int terminal_find_visible(const TerminalState *terminal, const char *needle,
     return TerminalPaneSearchLines(terminal_search_line_text, (void *)terminal,
                                    terminal_visible_line_count(terminal),
                                    needle, start_row, start_col, direction,
-                                   wrap, out);
+                                   wrap, (TerminalPaneSearchMatch *)out);
 }
 
 TerminalPaneSearchController terminal_search_controller(

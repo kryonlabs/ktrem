@@ -83,6 +83,13 @@ static int config_path(char *path, int path_size)
 
     if(path == NULL || path_size <= 0)
         return 0;
+#if defined(KRYON_NATIVE_PLAN9)
+    home = getenv("home");
+    if(home == NULL || home[0] == '\0')
+        return 0;
+    snprintf(path, (size_t)path_size, "%s/lib/kapsule/config", home);
+    return 1;
+#else
     xdg = getenv("XDG_CONFIG_HOME");
     home = getenv("HOME");
     if(xdg != NULL && xdg[0] != '\0')
@@ -92,6 +99,7 @@ static int config_path(char *path, int path_size)
     else
         return 0;
     return 1;
+#endif
 }
 
 static void ensure_parent_dirs(const char *path)

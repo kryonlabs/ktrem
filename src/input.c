@@ -11,13 +11,14 @@ typedef struct InputTarget {
 
 static TerminalPaneKeyMode input_key_mode(const TerminalState *terminal)
 {
+    TerminalPaneKeyMode mode = {0};
+
     if(terminal == NULL)
-        return (TerminalPaneKeyMode){0};
-    return (TerminalPaneKeyMode){
-        terminal->application_cursor_keys,
-        terminal->application_keypad,
-        terminal->modify_other_keys,
-    };
+        return mode;
+    mode.application_cursor_keys = terminal->application_cursor_keys;
+    mode.application_keypad = terminal->application_keypad;
+    mode.modify_other_keys = terminal->modify_other_keys;
+    return mode;
 }
 
 static int input_write_terminal(void *userdata, const char *text, int length)

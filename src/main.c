@@ -153,7 +153,8 @@ static int path_in_list(const char *const *paths, int count, const char *path)
 static int fontconfig_match_charset(unsigned int codepoint, char *out,
                                     int out_size)
 {
-#if !defined(_WIN32) && !defined(PLATFORM_WEB)
+#if !defined(_WIN32) && !defined(PLATFORM_WEB) && \
+    !defined(KRYON_NATIVE_PLAN9)
     char command[96];
     char line[512];
     FILE *pipe;
@@ -308,7 +309,11 @@ static int target_fps(void)
     long fps;
 
     if(value == NULL || value[0] == '\0')
+#if defined(KRYON_NATIVE_PLAN9)
+        return 30;
+#else
         return 60;
+#endif
     fps = strtol(value, &end, 10);
     if(end == value || fps < 0 || fps > 1000)
         return 60;
@@ -322,10 +327,18 @@ static int active_target_fps(int idle_fps)
     long fps;
 
     if(value == NULL || value[0] == '\0')
+#if defined(KRYON_NATIVE_PLAN9)
+        return idle_fps < 60 ? 60 : idle_fps;
+#else
         return idle_fps < 1000 ? 1000 : idle_fps;
+#endif
     fps = strtol(value, &end, 10);
     if(end == value || fps < 0 || fps > 1000)
+#if defined(KRYON_NATIVE_PLAN9)
+        return idle_fps < 60 ? 60 : idle_fps;
+#else
         return idle_fps < 1000 ? 1000 : idle_fps;
+#endif
     if(fps > 0 && fps < idle_fps)
         return idle_fps;
     return (int)fps;
@@ -338,10 +351,18 @@ static int pty_burst_ms(void)
     long ms;
 
     if(value == NULL || value[0] == '\0')
+#if defined(KRYON_NATIVE_PLAN9)
+        return 0;
+#else
         return 8;
+#endif
     ms = strtol(value, &end, 10);
     if(end == value || ms < 0 || ms > 20)
+#if defined(KRYON_NATIVE_PLAN9)
+        return 0;
+#else
         return 8;
+#endif
     return (int)ms;
 }
 

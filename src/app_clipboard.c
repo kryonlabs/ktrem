@@ -25,8 +25,10 @@ clipboard_actions(State *app, Session *session)
 
 static TerminalPaneClipboardActions active_clipboard_actions(State *app)
 {
+    TerminalPaneClipboardActions actions = {0};
+
     if(app == NULL)
-        return (TerminalPaneClipboardActions){0};
+        return actions;
     return clipboard_actions(app, active_session(app));
 }
 

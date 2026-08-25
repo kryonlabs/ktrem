@@ -6,26 +6,27 @@
 
 static TerminalPaneModeState terminal_mode_state(const TerminalState *terminal)
 {
+    TerminalPaneModeState state = {0};
+
     if(terminal == NULL)
-        return (TerminalPaneModeState){0};
-    return (TerminalPaneModeState){
-        terminal->cursor_blink,
-        terminal->cursor_visible,
-        terminal->origin_mode,
-        terminal->autowrap,
-        terminal->application_cursor_keys,
-        terminal->mouse_mode,
-        terminal->focus_reporting,
-        terminal->mouse_utf8,
-        terminal->mouse_sgr,
-        terminal->alternate_scroll,
-        terminal->mouse_urxvt,
-        terminal->mouse_pixels,
-        terminal->bracketed_paste,
-        terminal->alternate_screen,
-        terminal->insert_mode,
-        terminal->newline_mode,
-    };
+        return state;
+    state.cursor_blink = terminal->cursor_blink;
+    state.cursor_visible = terminal->cursor_visible;
+    state.origin_mode = terminal->origin_mode;
+    state.autowrap = terminal->autowrap;
+    state.application_cursor_keys = terminal->application_cursor_keys;
+    state.mouse_mode = terminal->mouse_mode;
+    state.focus_reporting = terminal->focus_reporting;
+    state.mouse_utf8 = terminal->mouse_utf8;
+    state.mouse_sgr = terminal->mouse_sgr;
+    state.alternate_scroll = terminal->alternate_scroll;
+    state.mouse_urxvt = terminal->mouse_urxvt;
+    state.mouse_pixels = terminal->mouse_pixels;
+    state.bracketed_paste = terminal->bracketed_paste;
+    state.alternate_screen = terminal->alternate_screen;
+    state.insert_mode = terminal->insert_mode;
+    state.newline_mode = terminal->newline_mode;
+    return state;
 }
 
 static void terminal_apply_mode_state(TerminalState *terminal,

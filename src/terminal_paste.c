@@ -11,8 +11,10 @@ static int write_paste_chunk(void *userdata, const char *text, int size)
 
 TerminalPaneClipboard terminal_clipboard(TerminalState *terminal)
 {
+    TerminalPaneClipboard clipboard = {0};
+
     if(terminal == NULL)
-        return (TerminalPaneClipboard){0};
+        return clipboard;
     return MakeTerminalPaneClipboard(&terminal->clipboard,
                                      terminal->bracketed_paste,
                                      write_paste_chunk, terminal);

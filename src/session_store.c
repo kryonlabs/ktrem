@@ -7,17 +7,28 @@
 
 static int state_dir(char *path, int path_size)
 {
+#if defined(KRYON_NATIVE_PLAN9)
+    const char *home = getenv("home");
+#else
     const char *xdg = getenv("XDG_STATE_HOME");
     const char *home = getenv("HOME");
+#endif
 
     if(path == NULL || path_size <= 0)
         return 0;
+#if defined(KRYON_NATIVE_PLAN9)
+    if(home != NULL && home[0] != '\0')
+        snprintf(path, (size_t)path_size, "%s/lib/kapsule", home);
+    else
+        return 0;
+#else
     if(xdg != NULL && xdg[0] != '\0')
         snprintf(path, (size_t)path_size, "%s/kapsule", xdg);
     else if(home != NULL && home[0] != '\0')
         snprintf(path, (size_t)path_size, "%s/.local/state/kapsule", home);
     else
         return 0;
+#endif
     return 1;
 }
 

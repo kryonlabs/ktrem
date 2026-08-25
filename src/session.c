@@ -126,8 +126,10 @@ void session_sync_terminal_metadata(Session *session)
 
 void session_current_cwd(const Session *session, char *out, int out_size)
 {
+#if !defined(KRYON_NATIVE_PLAN9)
     char link_path[64];
     ssize_t len;
+#endif
 
     if(out == NULL || out_size <= 0)
         return;
@@ -139,6 +141,7 @@ void session_current_cwd(const Session *session, char *out, int out_size)
         return;
     }
     if(session->terminal.pid > 0) {
+#if !defined(KRYON_NATIVE_PLAN9)
         snprintf(link_path, sizeof(link_path), "/proc/%d/cwd",
                  session->terminal.pid);
         len = readlink(link_path, out, (size_t)out_size - 1);
@@ -146,6 +149,7 @@ void session_current_cwd(const Session *session, char *out, int out_size)
             out[len] = '\0';
             return;
         }
+#endif
     }
     copy_text(out, out_size, session->cwd);
 }

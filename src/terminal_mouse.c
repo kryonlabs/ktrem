@@ -2,15 +2,16 @@
 
 static TerminalPaneMouseMode terminal_mouse_mode(const TerminalState *terminal)
 {
+    TerminalPaneMouseMode mode = {0};
+
     if(terminal == NULL)
-        return (TerminalPaneMouseMode){0};
-    return (TerminalPaneMouseMode){
-        terminal->mouse_mode,
-        terminal->mouse_utf8,
-        terminal->mouse_sgr,
-        terminal->mouse_urxvt,
-        terminal->mouse_pixels,
-    };
+        return mode;
+    mode.mode = terminal->mouse_mode;
+    mode.utf8 = terminal->mouse_utf8;
+    mode.sgr = terminal->mouse_sgr;
+    mode.urxvt = terminal->mouse_urxvt;
+    mode.pixels = terminal->mouse_pixels;
+    return mode;
 }
 
 int terminal_send_mouse_pixels(TerminalState *terminal, int button, int col,
