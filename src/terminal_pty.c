@@ -76,6 +76,56 @@ static int shell_is_bash(const char *shell)
     return strcmp(name, "bash") == 0;
 }
 
+static int
+path_segment_matches(const char *segment, size_t length, const char *value)
+{
+    size_t value_len;
+
+    if(segment == NULL || value == NULL)
+        return 0;
+    value_len = strlen(value);
+    return value_len == length && strncmp(segment, value, length) == 0;
+}
+
+static void
+sanitize_terminal_child_path(void)
+{
+    const char *path = getenv("PATH");
+    const char *plan9 = getenv("PLAN9");
+    char plan9_bin[512];
+    char clean[4096];
+    const char *segment;
+    size_t used = 0;
+    int changed = 0;
+
+    if(path == NULL || path[0] == '\0' ||
+       plan9 == NULL || plan9[0] == '\0')
+        return;
+    snprintf(plan9_bin, sizeof(plan9_bin), "%s/bin", plan9);
+    clean[0] = '\0';
+
+    segment = path;
+    while(segment != NULL) {
+        const char *end = strchr(segment, ':');
+        size_t len = end != NULL ? (size_t)(end - segment)
+                                 : strlen(segment);
+
+        if(path_segment_matches(segment, len, plan9_bin)) {
+            changed = 1;
+        } else if(used + len + 2 < sizeof(clean)) {
+            if(used > 0)
+                clean[used++] = ':';
+            memcpy(clean + used, segment, len);
+            used += len;
+            clean[used] = '\0';
+        }
+        segment = end != NULL ? end + 1 : NULL;
+    }
+
+    if(changed && clean[0] != '\0')
+        setenv("PATH", clean, 1);
+}
+
 int terminal_spawn(TerminalState *terminal, const char *cwd, const char *shell,
                    const char *command, int cols, int rows)
 {
@@ -127,6 +177,7 @@ int terminal_spawn(TerminalState *terminal, const char *cwd, const char *shell,
             _exit(127);
         setenv("TERM", "xterm-256color", 1);
         setenv("COLORTERM", "truecolor", 1);
+        sanitize_terminal_child_path();
         run_shell = shell;
         if(run_shell == NULL || run_shell[0] == '\0')
             run_shell = getenv("SHELL");
