@@ -37,6 +37,13 @@ static Color blend_color(Color a, Color b, float t)
                    a.a};
 }
 
+static Color
+opaque_color(Color color)
+{
+    color.a = 255;
+    return color;
+}
+
 static void draw_tabs(State *app, Rectangle bounds)
 {
     Tab tabs[MAX_SESSIONS + 1];
@@ -338,7 +345,7 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     theme_colors = terminal_theme_tokens();
     view_colors = terminal_view_colors(app, terminal, theme_colors);
 
-    DrawRectangleRec(bounds, app->palette.background);
+    DrawRectangleRec(bounds, opaque_color(app->palette.background));
     if(menu_h > 0) {
         draw_app_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
                                            (float)menu_h});
@@ -347,7 +354,7 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
         draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
                                    bounds.width, (float)tab_h});
     }
-    DrawRectangleRec(app->viewport, view_colors.background);
+    DrawRectangleRec(app->viewport, opaque_color(view_colors.background));
 
     BeginScissorMode((int)app->viewport.x, (int)app->viewport.y,
                      (int)app->viewport.width, (int)app->viewport.height);
@@ -484,7 +491,7 @@ void draw_starting_frame(State *app)
     TerminalPaneColors theme_colors = terminal_theme_tokens();
 
     UseUIFont("kapsule-ui");
-    DrawRectangleRec(bounds, app->palette.background);
+    DrawRectangleRec(bounds, opaque_color(app->palette.background));
     if(menu_h > 0) {
         draw_app_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
                                            (float)menu_h});
@@ -493,7 +500,7 @@ void draw_starting_frame(State *app)
         draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
                                    bounds.width, (float)tab_h});
     }
-    DrawRectangleRec(viewport, theme_colors.background);
+    DrawRectangleRec(viewport, opaque_color(theme_colors.background));
     Text("Starting terminal...", (int)viewport.x + 10,
          (int)viewport.y + 10, app->config.font_size, theme_colors.text);
 }

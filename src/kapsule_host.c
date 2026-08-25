@@ -264,6 +264,13 @@ kapsule_set_focused(void *userdata, int focused)
 }
 
 static void
+kapsule_opaque_draw_rectangle_rec(Rectangle rect, Color color)
+{
+    color.a = 255;
+    DrawRectangleRec(rect, color);
+}
+
+static void
 kapsule_draw(void *userdata, Rectangle viewport)
 {
     KapsuleHost *host = userdata;
@@ -294,7 +301,7 @@ kapsule_draw(void *userdata, Rectangle viewport)
         refresh_app_theme(app);
         app->next_theme_refresh = GetTime() + 2.0;
     }
-    DrawRectangleRec(viewport, app->palette.background);
+    kapsule_opaque_draw_rectangle_rec(viewport, app->palette.background);
     if(session != NULL) {
         BeginScissorMode((int)viewport.x, (int)viewport.y,
                          (int)viewport.width, (int)viewport.height);
