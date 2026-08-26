@@ -18,14 +18,14 @@ static int state_dir(char *path, int path_size)
         return 0;
 #if defined(KRYON_NATIVE_PLAN9)
     if(home != NULL && home[0] != '\0')
-        snprintf(path, (size_t)path_size, "%s/lib/kapsule", home);
+        snprintf(path, (size_t)path_size, "%s/lib/ktrem", home);
     else
         return 0;
 #else
     if(xdg != NULL && xdg[0] != '\0')
-        snprintf(path, (size_t)path_size, "%s/kapsule", xdg);
+        snprintf(path, (size_t)path_size, "%s/ktrem", xdg);
     else if(home != NULL && home[0] != '\0')
-        snprintf(path, (size_t)path_size, "%s/.local/state/kapsule", home);
+        snprintf(path, (size_t)path_size, "%s/.local/state/ktrem", home);
     else
         return 0;
 #endif

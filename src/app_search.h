@@ -1,5 +1,5 @@
-#ifndef KAPSULE_APP_SEARCH_H
-#define KAPSULE_APP_SEARCH_H
+#ifndef KTREM_APP_SEARCH_H
+#define KTREM_APP_SEARCH_H
 
 #include "app_state.h"
 

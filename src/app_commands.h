@@ -1,5 +1,5 @@
-#ifndef KAPSULE_APP_COMMANDS_H
-#define KAPSULE_APP_COMMANDS_H
+#ifndef KTREM_APP_COMMANDS_H
+#define KTREM_APP_COMMANDS_H
 
 #include "app_state.h"
 

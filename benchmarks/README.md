@@ -1,25 +1,25 @@
-# Kapsule Terminal Benchmarks
+# ktrem Terminal Benchmarks
 
 Benchmarks run GUI terminals under Xvfb by default so they do not open windows
 on the user's active desktop. The harness prefers the local build at
-`build/<platform>-<arch>/bin/kapsule`; set `KAPSULE_BENCH_KAPSULE_BIN=/path` to
-benchmark another binary. Set `KAPSULE_BENCH_USE_REAL_DISPLAY=1` only when an
+`build/<platform>-<arch>/bin/ktrem`; set `KTREM_BENCH_KTREM_BIN=/path` to
+benchmark another binary. Set `KTREM_BENCH_USE_REAL_DISPLAY=1` only when an
 interactive desktop run is intentional.
 
 ```sh
 benchmarks/run-terminal-benchmarks.sh
 ```
 
-Pass a second argument to test a different active-output FPS cap for Kapsule
+Pass a second argument to test a different active-output FPS cap for ktrem
 while keeping idle FPS unchanged. Pass a third argument to test a different
 bounded PTY drain burst in milliseconds. Pass a fourth argument for repeated
 runs. Pass a fifth argument to restrict the workload list:
 
 ```sh
-benchmarks/run-terminal-benchmarks.sh /tmp/kapsule-bench 500
-benchmarks/run-terminal-benchmarks.sh /tmp/kapsule-bench 1000 8 3
-benchmarks/run-terminal-benchmarks.sh /tmp/kapsule-bench 1000 12 3 dense_sgr
-benchmarks/run-terminal-benchmarks.sh /tmp/kapsule-bench 1000 8 3 "paste_burst hyperlink_grid search_corpus"
+benchmarks/run-terminal-benchmarks.sh /tmp/ktrem-bench 500
+benchmarks/run-terminal-benchmarks.sh /tmp/ktrem-bench 1000 8 3
+benchmarks/run-terminal-benchmarks.sh /tmp/ktrem-bench 1000 12 3 dense_sgr
+benchmarks/run-terminal-benchmarks.sh /tmp/ktrem-bench 1000 8 3 "paste_burst hyperlink_grid search_corpus"
 ```
 
 The externally driven live-resize workload uses X window control through
@@ -27,16 +27,16 @@ The externally driven live-resize workload uses X window control through
 particular Xvfb setup, run the explicit virtual-display form:
 
 ```sh
-env XDG_RUNTIME_DIR=/tmp/kapsule-runtime KAPSULE_BENCH_IN_VIRTUAL_DISPLAY=1 \
+env XDG_RUNTIME_DIR=/tmp/ktrem-runtime KTREM_BENCH_IN_VIRTUAL_DISPLAY=1 \
   xvfb-run -a -s '-screen 0 1280x800x24' \
-  sh benchmarks/run-terminal-benchmarks.sh /tmp/kapsule-live-resize 1000 8 3 live_resize
+  sh benchmarks/run-terminal-benchmarks.sh /tmp/ktrem-live-resize 1000 8 3 live_resize
 ```
 
 The externally driven clipboard workload uses a Tk clipboard owner and
 `xdotool`. By default the harness sends a held `Ctrl+Shift+V`, matching the
-standard terminal paste accelerator and giving Kapsule and xfce4-terminal the
+standard terminal paste accelerator and giving ktrem and xfce4-terminal the
 same synthetic shortcut. Override with
-`KAPSULE_BENCH_PASTE_ACCEL=shift_insert`, `ctrl_shift_v`, or `ctrl_shift_V`
+`KTREM_BENCH_PASTE_ACCEL=shift_insert`, `ctrl_shift_v`, or `ctrl_shift_V`
 when debugging shortcut handling.
 
 The harness appends summary records with min/average/max elapsed time per
@@ -47,10 +47,10 @@ terminal and workload.
 Result file:
 `benchmarks/results/terminal-benchmarks-20260821T000833Z.jsonl`
 
-Three isolated runs, `KAPSULE_ACTIVE_FPS=1000`,
-`KAPSULE_PTY_BURST_MS=8`:
+Three isolated runs, `KTREM_ACTIVE_FPS=1000`,
+`KTREM_PTY_BURST_MS=8`:
 
-| Workload | Kapsule avg | Kapsule min/max | xfce4-terminal avg | xfce min/max | Current state |
+| Workload | ktrem avg | ktrem min/max | xfce4-terminal avg | xfce min/max | Current state |
 |---|---:|---:|---:|---:|---|
 | startup payload | 0.0 ms | 0/0 | 1.7 ms | 0/5 | matched |
 | ANSI flood, 18k lines | 81.7 ms | 76/86 | 187.0 ms | 90/378 | faster |
@@ -61,9 +61,9 @@ Three isolated runs, `KAPSULE_ACTIVE_FPS=1000`,
 | scrollback flood, 50k lines | 86.7 ms | 81/95 | 107.7 ms | 106/110 | faster average |
 | cursor matrix updates | 72.7 ms | 72/73 | 124.3 ms | 83/203 | faster |
 
-The same dense-SGR workload with a 12 ms PTY burst measured Kapsule at
+The same dense-SGR workload with a 12 ms PTY burst measured ktrem at
 75.0 ms average and xfce4-terminal at 79.0 ms average, but a full-suite 12 ms
-run produced larger Kapsule outliers in other workloads. The default is
+run produced larger ktrem outliers in other workloads. The default is
 therefore 8 ms.
 
 Treat individual runs as directional because Xvfb/GTK scheduling can introduce
@@ -75,9 +75,9 @@ Result file:
 `benchmarks/results/terminal-benchmarks-20260821T004722Z.jsonl`
 
 Three isolated runs of the newer paste/link/search-corpus workloads,
-`KAPSULE_ACTIVE_FPS=1000`, `KAPSULE_PTY_BURST_MS=8`:
+`KTREM_ACTIVE_FPS=1000`, `KTREM_PTY_BURST_MS=8`:
 
-| Workload | Kapsule avg | Kapsule min/max | xfce4-terminal avg | xfce min/max | Current state |
+| Workload | ktrem avg | ktrem min/max | xfce4-terminal avg | xfce min/max | Current state |
 |---|---:|---:|---:|---:|---|
 | paste-like burst, 12k lines | 69.3 ms | 63/74 | 154.7 ms | 78/303 | faster |
 | OSC 8 hyperlink grid, 7k lines | 76.7 ms | 71/84 | 276.7 ms | 212/341 | faster |
@@ -98,7 +98,7 @@ lines, then drives 120 external window resize operations with `xdotool`.
 This measures window resize handling around real X windows rather than
 parser-only `terminal_resize()` calls:
 
-| Workload | Kapsule avg | Kapsule min/max | xfce4-terminal avg | xfce min/max | Current state |
+| Workload | ktrem avg | ktrem min/max | xfce4-terminal avg | xfce min/max | Current state |
 |---|---:|---:|---:|---:|---|
 | live external resize, 120 resizes | 158.7 ms | 155/162 | 177.3 ms | 171/185 | faster |
 
@@ -112,11 +112,11 @@ separate Tk process, focuses the terminal window, sends the terminal's standard
 paste accelerator, and waits for a raw-mode process inside the terminal to
 receive the full clipboard payload:
 
-| Workload | Kapsule avg | Kapsule min/max | xfce4-terminal avg | xfce min/max | Current state |
+| Workload | ktrem avg | ktrem min/max | xfce4-terminal avg | xfce min/max | Current state |
 |---|---:|---:|---:|---:|---|
 | external clipboard paste, 29 lines | 206.3 ms | 206/207 | 256.7 ms | 256/257 | faster |
 
-Earlier `20260821T121806Z` measured Kapsule's `Shift+Insert` path against
+Earlier `20260821T121806Z` measured ktrem's `Shift+Insert` path against
 xfce4-terminal's `Ctrl+Shift+V` path. The newer result above uses held
 `Ctrl+Shift+V` for both terminals.
 
@@ -130,32 +130,32 @@ corpus, opens the terminal find UI with held `Ctrl+Shift+F`, types
 `needle-critical`, submits the search, closes the find UI, then verifies PTY
 input is restored by typing a marker into the running target:
 
-| Workload | Kapsule avg | Kapsule min/max | xfce4-terminal avg | xfce min/max | Current state |
+| Workload | ktrem avg | ktrem min/max | xfce4-terminal avg | xfce min/max | Current state |
 |---|---:|---:|---:|---:|---|
 | external find dialog, 18k-line corpus | 613.0 ms | 611/614 | 635.7 ms | 608/691 | faster average |
 
-This result depends on two parity fixes: Kapsule disables raylib's default
+This result depends on two parity fixes: ktrem disables raylib's default
 Escape-to-close-window behavior, and Kryon prompt dialogs now treat text-field
-Enter as confirm while Kapsule closes its find prompt on Escape.
+Enter as confirm while ktrem closes its find prompt on Escape.
 
-Earlier result files before `20260820T230122Z` used `kapsule` from `PATH`.
+Earlier result files before `20260820T230122Z` used `ktrem` from `PATH`.
 Those are still useful for installed-binary regressions, but local worktree
 performance comparisons should use the corrected harness or explicitly set
-`KAPSULE_BENCH_KAPSULE_BIN`.
+`KTREM_BENCH_KTREM_BIN`.
 
 The benchmark harness now fails fast when a terminal process exits before
-writing its workload result. Kapsule also exits with
-`kapsule: graphics backend failed to initialize` instead of continuing into
+writing its workload result. ktrem also exits with
+`ktrem: graphics backend failed to initialize` instead of continuing into
 font upload and draw code when SDL/raylib does not provide a usable GL context.
 
-Kapsule now drains PTY output with an adaptive frame cadence: it idles at
-`KAPSULE_TARGET_FPS` (default 60) and temporarily raises to
-`KAPSULE_ACTIVE_FPS` (default 1000) after PTY bytes arrive. During active
+ktrem now drains PTY output with an adaptive frame cadence: it idles at
+`KTREM_TARGET_FPS` (default 60) and temporarily raises to
+`KTREM_ACTIVE_FPS` (default 1000) after PTY bytes arrive. During active
 output it also performs a bounded PTY drain burst controlled by
-`KAPSULE_PTY_BURST_MS` (default 8, valid range 0-20). This removed most of the
+`KTREM_PTY_BURST_MS` (default 8, valid range 0-20). This removed most of the
 previous shell-output blocking:
 
-| Kapsule state | ANSI flood | Unicode table | Alternate redraw |
+| ktrem state | ANSI flood | Unicode table | Alternate redraw |
 |---|---:|---:|---:|
 | fixed 60 FPS loop | 675 ms | 20 ms | 339 ms |
 | adaptive active-output loop | 118 ms | 18 ms | 41 ms |
@@ -164,7 +164,7 @@ previous shell-output blocking:
 
 PTY burst tuning on the same workload set:
 
-| `KAPSULE_PTY_BURST_MS` | ANSI flood | Unicode table | Alternate redraw | Dense SGR |
+| `KTREM_PTY_BURST_MS` | ANSI flood | Unicode table | Alternate redraw | Dense SGR |
 |---:|---:|---:|---:|---:|
 | 0 | 118 ms | 20 ms | 39 ms | not measured |
 | 1 | 88 ms | 17 ms | 28 ms | not measured |
@@ -176,11 +176,11 @@ PTY burst tuning on the same workload set:
 
 The default is 8 ms because it closes the synthetic throughput gaps without
 the wider outliers seen at 12 ms in the full suite. Higher values remain useful
-for local tuning via `KAPSULE_PTY_BURST_MS`.
+for local tuning via `KTREM_PTY_BURST_MS`.
 
 The previous text-run batching experiment in `app_terminal_view.c` regressed
 the same harness (`ansi_flood` 694 ms, `alternate_redraw` 344 ms), so it was
-reverted. The bottleneck is not solved by naive grouping at the Kapsule view
+reverted. The bottleneck is not solved by naive grouping at the ktrem view
 layer.
 
 Kryon `DrawTexturePro`-based terminal glyph experiments also failed to close
@@ -188,15 +188,15 @@ the gap:
 
 | Trial | ANSI flood | Unicode table | Alternate redraw | Result |
 |---|---:|---:|---:|---|
-| grid primitive, uncached | 749 ms | 22 ms | 345 ms | reverted from Kapsule |
-| grid primitive, cached | 678 ms | 33 ms | 345 ms | reverted from Kapsule |
-| single-cell primitive, cached | 566 ms | 21 ms | 328 ms | reverted from Kapsule |
+| grid primitive, uncached | 749 ms | 22 ms | 345 ms | reverted from ktrem |
+| grid primitive, cached | 678 ms | 33 ms | 345 ms | reverted from ktrem |
+| single-cell primitive, cached | 566 ms | 21 ms | 328 ms | reverted from ktrem |
 
 These experiments show that wrapping raylib texture draws is not enough. A
 direct `rlgl` quad stream inside `DrawTerminalPaneGlyphGrid` also failed when
-wired into Kapsule: `ansi_flood` measured 578 ms before texture-state caching
+wired into ktrem: `ansi_flood` measured 578 ms before texture-state caching
 and 710 ms after the explicit batch-limit/texture-cache variant, while
-`alternate_redraw` stayed around 344 ms. That path was removed from Kapsule's
+`alternate_redraw` stayed around 344 ms. That path was removed from ktrem's
 active renderer. The next renderer work needs a real terminal renderer rather
 than a lower-level spelling of the same per-glyph work: persistent glyph
 instances or vertex buffers, dirty row/cell damage, and batched decorations.
@@ -221,21 +221,21 @@ Parser-only replay file:
 | 120 resize/reflows over 5k-line buffer | 739 ms |
 
 This proves the current parser/screen model is not the dominant blocker for the
-measured GUI output cost. The latest PTY scheduling work makes Kapsule
+measured GUI output cost. The latest PTY scheduling work makes ktrem
 competitive with xfce4-terminal on the current synthetic GUI workloads.
 Resize/reflow remains the exception, but streaming combined scrollback/main
 reflow reduced the measured replay from 2393 ms to 739 ms for this workload by
 avoiding a large worst-case temporary output matrix on each resize. More work
 is still needed before claiming broad resize parity across real desktop window
-managers, but the focused Xvfb live-resize workload currently measures Kapsule
+managers, but the focused Xvfb live-resize workload currently measures ktrem
 ahead of xfce4-terminal.
 
 ## Parity Plan
 
-To be a practical xfce4-terminal alternative, Kapsule needs parity in these
+To be a practical xfce4-terminal alternative, ktrem needs parity in these
 areas:
 
-- Speed: keep Kapsule at or above xfce4-terminal on startup, streaming output,
+- Speed: keep ktrem at or above xfce4-terminal on startup, streaming output,
   Unicode output, alternate-screen redraw, scrollback search, paste,
   resize/reflow, and large scrollback memory behavior. The synthetic repeated
   GUI suite now covers startup, ANSI flood, Unicode, alternate-screen redraw,
@@ -259,29 +259,29 @@ areas:
 - Packaging: desktop file, icon, install docs, release assets, terminfo if the
   advertised terminal name diverges from xterm-compatible behavior.
 - Website: publish the benchmark table, the parity matrix, install command,
-  screenshots, and the remaining-feature plan on `kapsule.kryonlabs.com` using
+  screenshots, and the remaining-feature plan on `ktrem.kryonlabs.com` using
   the Kryon Labs visual style once a website source/project exists.
 
 ## Xfce Launch Parity
 
 Current command-line compatibility coverage:
 
-| Xfce surface | Kapsule state |
+| Xfce surface | ktrem state |
 |---|---|
 | `--command`, `-e` | implemented for single-window and tab-spec launch |
 | `--execute`, `-x` | implemented by shell-quoting the remaining argv |
 | `--working-directory`, `--default-working-directory` | implemented |
 | `--title`, `-T` | implemented as the initial tab/window title and per-tab title |
-| `--hold`, `-H` | accepted; Kapsule already keeps command sessions visible after child exit |
+| `--hold`, `-H` | accepted; ktrem already keeps command sessions visible after child exit |
 | `--geometry COLSxROWS` | implemented for initial terminal grid estimate and window size |
 | `--fullscreen`, `--maximize` | implemented through Kryon/raylib window state |
 | `--drop-down` | implemented for first-run borderless top-of-screen window shape |
-| `--show-menubar`, `--hide-menubar` | accepted; Kapsule has fixed minimal chrome today |
+| `--show-menubar`, `--hide-menubar` | accepted; ktrem has fixed minimal chrome today |
 | `--show-toolbar`, `--hide-toolbar` | accepted; no separate toolbar exists today |
 | `--show-borders`, `--hide-borders` | implemented through window decoration flags where supported |
-| `--disable-server` | accepted as a no-op because Kapsule has no D-Bus single-instance server |
+| `--disable-server` | accepted as a no-op because ktrem has no D-Bus single-instance server |
 | `--color-table`, `--version`, `--help` | implemented |
-| `--tab` multi-spec launch | implemented for up to Kapsule's current 8-tab session limit |
+| `--tab` multi-spec launch | implemented for up to ktrem's current 8-tab session limit |
 | `--window` multi-spec launch | accepted as a separator and currently opened as another tab |
 | drop-down visibility toggle | not implemented yet; requires single-instance/server behavior |
 
@@ -295,7 +295,7 @@ xfce4-terminal is based on VTE/GTK. Xfce's own documentation describes it as a
 lightweight terminal with tabs, unlimited scrolling, colors, fonts,
 transparency, and drop-down mode, and also states that VTE rendering speed with
 font antialiasing can be an issue. Xfce's command-line docs define the parity
-surface Kapsule still needs to cover: tabs/windows, command execution, working
+surface ktrem still needs to cover: tabs/windows, command execution, working
 directory, title, hold, geometry, fullscreen/maximize, menubar/borders/toolbar
 visibility, and related launch options. Xfce preferences also include
 rewrapping content on resize.
@@ -305,23 +305,23 @@ Alacritty identifies itself as a fast OpenGL terminal and requires at least
 OpenGL ES 2.0. WezTerm exposes GPU front ends for OpenGL and WebGPU, and its
 WebGPU path maps to platform backends including Metal, Vulkan, and DirectX 12.
 
-Kapsule should not switch away from Kryon for the app. The parser replay plus
+ktrem should not switch away from Kryon for the app. The parser replay plus
 the failed `DrawTexturePro` and `rlgl` stream trials show the next correct
 architecture is a Kryon terminal-grid renderer backed by retained GPU data:
 fixed-cell glyph instances, foreground/background runs,
 underline/overline/strike decorations, cursor shape, and dirty row/cell
-damage. Kapsule should use that primitive while keeping terminal emulation in
-Kapsule.
+damage. ktrem should use that primitive while keeping terminal emulation in
+ktrem.
 
 Backend recommendation: keep Kryon as the abstraction, but do not rely on
-raylib's immediate-mode-style text helpers for Kapsule's terminal surface. Add
+raylib's immediate-mode-style text helpers for ktrem's terminal surface. Add
 a Kryon-owned retained terminal-grid renderer: dirty row/cell tracking,
 persistent glyph instances or vertex buffers, foreground/background runs,
 custom-drawn box/block glyphs, underline/overline/strike decorations, cursor
 shape, and image planes for sixel/graphics. Use OpenGL/GLES instanced quads as
-the near-term Linux backend because Kapsule already ships on Kryon's current
+the near-term Linux backend because ktrem already ships on Kryon's current
 desktop stack. Design the Kryon renderer API so the backend can later be
-implemented on wgpu/WebGPU for Vulkan/Metal/DX portability. Replacing Kapsule
+implemented on wgpu/WebGPU for Vulkan/Metal/DX portability. Replacing ktrem
 with GTK/VTE would meet feature parity quickly but would stop showcasing Kryon.
 
 References:

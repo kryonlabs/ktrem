@@ -1,13 +1,13 @@
-# Kapsule terminal benchmark run 20260821T004722Z
-{"terminal":"kapsule","run":1,"launch_to_result_ms":1001,"payload":{"workload":"paste_burst","elapsed_ms":71,"lines":12000,"bytes":1440000}}
-{"terminal":"kapsule","run":1,"launch_to_result_ms":1001,"payload":{"workload":"hyperlink_grid","elapsed_ms":75,"lines":7000,"bytes":980000}}
-{"terminal":"kapsule","run":1,"launch_to_result_ms":1002,"payload":{"workload":"search_corpus","elapsed_ms":46,"lines":18000,"bytes":1746000}}
-{"terminal":"kapsule","run":2,"launch_to_result_ms":1001,"payload":{"workload":"paste_burst","elapsed_ms":74,"lines":12000,"bytes":1440000}}
-{"terminal":"kapsule","run":2,"launch_to_result_ms":1001,"payload":{"workload":"hyperlink_grid","elapsed_ms":71,"lines":7000,"bytes":980000}}
-{"terminal":"kapsule","run":2,"launch_to_result_ms":1001,"payload":{"workload":"search_corpus","elapsed_ms":48,"lines":18000,"bytes":1746000}}
-{"terminal":"kapsule","run":3,"launch_to_result_ms":1001,"payload":{"workload":"paste_burst","elapsed_ms":63,"lines":12000,"bytes":1440000}}
-{"terminal":"kapsule","run":3,"launch_to_result_ms":1001,"payload":{"workload":"hyperlink_grid","elapsed_ms":84,"lines":7000,"bytes":980000}}
-{"terminal":"kapsule","run":3,"launch_to_result_ms":1001,"payload":{"workload":"search_corpus","elapsed_ms":49,"lines":18000,"bytes":1746000}}
+# ktrem terminal benchmark run 20260821T004722Z
+{"terminal":"ktrem","run":1,"launch_to_result_ms":1001,"payload":{"workload":"paste_burst","elapsed_ms":71,"lines":12000,"bytes":1440000}}
+{"terminal":"ktrem","run":1,"launch_to_result_ms":1001,"payload":{"workload":"hyperlink_grid","elapsed_ms":75,"lines":7000,"bytes":980000}}
+{"terminal":"ktrem","run":1,"launch_to_result_ms":1002,"payload":{"workload":"search_corpus","elapsed_ms":46,"lines":18000,"bytes":1746000}}
+{"terminal":"ktrem","run":2,"launch_to_result_ms":1001,"payload":{"workload":"paste_burst","elapsed_ms":74,"lines":12000,"bytes":1440000}}
+{"terminal":"ktrem","run":2,"launch_to_result_ms":1001,"payload":{"workload":"hyperlink_grid","elapsed_ms":71,"lines":7000,"bytes":980000}}
+{"terminal":"ktrem","run":2,"launch_to_result_ms":1001,"payload":{"workload":"search_corpus","elapsed_ms":48,"lines":18000,"bytes":1746000}}
+{"terminal":"ktrem","run":3,"launch_to_result_ms":1001,"payload":{"workload":"paste_burst","elapsed_ms":63,"lines":12000,"bytes":1440000}}
+{"terminal":"ktrem","run":3,"launch_to_result_ms":1001,"payload":{"workload":"hyperlink_grid","elapsed_ms":84,"lines":7000,"bytes":980000}}
+{"terminal":"ktrem","run":3,"launch_to_result_ms":1001,"payload":{"workload":"search_corpus","elapsed_ms":49,"lines":18000,"bytes":1746000}}
 {"terminal":"xfce4-terminal","run":1,"launch_to_result_ms":1001,"payload":{"workload":"paste_burst","elapsed_ms":78,"lines":12000,"bytes":1440000}}
 {"terminal":"xfce4-terminal","run":1,"launch_to_result_ms":1008,"payload":{"workload":"hyperlink_grid","elapsed_ms":212,"lines":7000,"bytes":980000}}
 {"terminal":"xfce4-terminal","run":1,"launch_to_result_ms":1004,"payload":{"workload":"search_corpus","elapsed_ms":126,"lines":18000,"bytes":1746000}}
@@ -19,7 +19,7 @@
 {"terminal":"xfce4-terminal","run":3,"launch_to_result_ms":1004,"payload":{"workload":"search_corpus","elapsed_ms":277,"lines":18000,"bytes":1746000}}
 {"summary":true,"terminal":"xfce4-terminal","workload":"paste_burst","runs":3,"min_elapsed_ms":78,"avg_elapsed_ms":154.7,"max_elapsed_ms":303}
 {"summary":true,"terminal":"xfce4-terminal","workload":"search_corpus","runs":3,"min_elapsed_ms":65,"avg_elapsed_ms":156.0,"max_elapsed_ms":277}
-{"summary":true,"terminal":"kapsule","workload":"hyperlink_grid","runs":3,"min_elapsed_ms":71,"avg_elapsed_ms":76.7,"max_elapsed_ms":84}
-{"summary":true,"terminal":"kapsule","workload":"paste_burst","runs":3,"min_elapsed_ms":63,"avg_elapsed_ms":69.3,"max_elapsed_ms":74}
+{"summary":true,"terminal":"ktrem","workload":"hyperlink_grid","runs":3,"min_elapsed_ms":71,"avg_elapsed_ms":76.7,"max_elapsed_ms":84}
+{"summary":true,"terminal":"ktrem","workload":"paste_burst","runs":3,"min_elapsed_ms":63,"avg_elapsed_ms":69.3,"max_elapsed_ms":74}
 {"summary":true,"terminal":"xfce4-terminal","workload":"hyperlink_grid","runs":3,"min_elapsed_ms":212,"avg_elapsed_ms":276.7,"max_elapsed_ms":341}
-{"summary":true,"terminal":"kapsule","workload":"search_corpus","runs":3,"min_elapsed_ms":46,"avg_elapsed_ms":47.7,"max_elapsed_ms":49}
+{"summary":true,"terminal":"ktrem","workload":"search_corpus","runs":3,"min_elapsed_ms":46,"avg_elapsed_ms":47.7,"max_elapsed_ms":49}

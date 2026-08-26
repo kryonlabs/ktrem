@@ -1,17 +1,17 @@
 #!/bin/sh
 set -eu
 
-if [ "${KAPSULE_BENCH_USE_REAL_DISPLAY:-0}" != "1" ] &&
-   [ "${KAPSULE_BENCH_IN_VIRTUAL_DISPLAY:-0}" != "1" ]; then
+if [ "${KTREM_BENCH_USE_REAL_DISPLAY:-0}" != "1" ] &&
+   [ "${KTREM_BENCH_IN_VIRTUAL_DISPLAY:-0}" != "1" ]; then
     if command -v xvfb-run >/dev/null 2>&1; then
         wrapper_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
         wrapper_out_dir="${1:-$wrapper_root/benchmarks/results}"
-        runtime_dir="${KAPSULE_BENCH_XDG_RUNTIME_DIR:-/tmp/ktrem-runtime}"
+        runtime_dir="${KTREM_BENCH_XDG_RUNTIME_DIR:-/tmp/ktrem-runtime}"
         mkdir -p "$runtime_dir"
         chmod 700 "$runtime_dir" 2>/dev/null || true
         set +e
         env XDG_RUNTIME_DIR="$runtime_dir" \
-            KAPSULE_BENCH_IN_VIRTUAL_DISPLAY=1 \
+            KTREM_BENCH_IN_VIRTUAL_DISPLAY=1 \
             xvfb-run -a -s "-screen 0 1280x800x24" sh "$0" "$@"
         status=$?
         set -e
@@ -26,7 +26,7 @@ if [ "${KAPSULE_BENCH_USE_REAL_DISPLAY:-0}" != "1" ] &&
         exit "$status"
     fi
     printf 'xvfb-run is required for isolated GUI benchmarks\n' >&2
-    printf 'set KAPSULE_BENCH_USE_REAL_DISPLAY=1 to use the current display\n' >&2
+    printf 'set KTREM_BENCH_USE_REAL_DISPLAY=1 to use the current display\n' >&2
     exit 2
 fi
 
@@ -35,12 +35,12 @@ workload_script="$root/benchmarks/workload.sh"
 out_dir="${1:-$root/benchmarks/results}"
 ktrem_active_fps="${2:-}"
 ktrem_pty_burst_ms="${3:-}"
-bench_runs="${4:-${KAPSULE_BENCH_RUNS:-1}}"
-selected_workloads="${5:-${KAPSULE_BENCH_WORKLOADS:-}}"
+bench_runs="${4:-${KTREM_BENCH_RUNS:-1}}"
+selected_workloads="${5:-${KTREM_BENCH_WORKLOADS:-}}"
 timestamp=$(date -u +%Y%m%dT%H%M%SZ)
 result_file="$out_dir/terminal-benchmarks-$timestamp.jsonl"
 workloads="${selected_workloads:-startup ansi_flood unicode_table alternate_redraw dense_sgr wrap_reflow scrollback_flood cursor_matrix paste_burst hyperlink_grid search_corpus}"
-terminals="${KAPSULE_BENCH_TERMINALS:-ktrem xfce4-terminal}"
+terminals="${KTREM_BENCH_TERMINALS:-ktrem xfce4-terminal}"
 
 arch=$(uname -m 2>/dev/null || printf unknown)
 case "$arch" in
@@ -52,7 +52,7 @@ case "$platform" in
     freebsd) platform=freebsd ;;
     darwin) platform=macos ;;
 esac
-ktrem_bin=${KAPSULE_BENCH_KAPSULE_BIN:-$root/build/$platform-$arch/bin/ktrem}
+ktrem_bin=${KTREM_BENCH_KTREM_BIN:-$root/build/$platform-$arch/bin/ktrem}
 if [ ! -x "$ktrem_bin" ]; then
     ktrem_bin=$(command -v ktrem || true)
 fi
@@ -65,12 +65,12 @@ now_ns() {
 
 case "$bench_runs" in
     ''|*[!0-9]*)
-        printf 'KAPSULE_BENCH_RUNS must be a positive integer\n' >&2
+        printf 'KTREM_BENCH_RUNS must be a positive integer\n' >&2
         exit 2
         ;;
 esac
 if [ "$bench_runs" -lt 1 ]; then
-    printf 'KAPSULE_BENCH_RUNS must be a positive integer\n' >&2
+    printf 'KTREM_BENCH_RUNS must be a positive integer\n' >&2
     exit 2
 fi
 
@@ -82,16 +82,16 @@ launch_terminal() {
         ktrem)
             if [ -n "$ktrem_active_fps" ] &&
                [ -n "$ktrem_pty_burst_ms" ]; then
-                env KAPSULE_ACTIVE_FPS="$ktrem_active_fps" \
-                    KAPSULE_PTY_BURST_MS="$ktrem_pty_burst_ms" \
+                env KTREM_ACTIVE_FPS="$ktrem_active_fps" \
+                    KTREM_PTY_BURST_MS="$ktrem_pty_burst_ms" \
                     "$ktrem_bin" --title "$title" --geometry 100x30 \
                     --command "$command" >/dev/null 2>&1 &
             elif [ -n "$ktrem_active_fps" ]; then
-                env KAPSULE_ACTIVE_FPS="$ktrem_active_fps" \
+                env KTREM_ACTIVE_FPS="$ktrem_active_fps" \
                     "$ktrem_bin" --title "$title" --geometry 100x30 \
                     --command "$command" >/dev/null 2>&1 &
             elif [ -n "$ktrem_pty_burst_ms" ]; then
-                env KAPSULE_PTY_BURST_MS="$ktrem_pty_burst_ms" \
+                env KTREM_PTY_BURST_MS="$ktrem_pty_burst_ms" \
                     "$ktrem_bin" --title "$title" --geometry 100x30 \
                     --command "$command" \
                     >/dev/null 2>&1 &
@@ -280,7 +280,7 @@ while time.time() < deadline:
 
 send_paste_accelerator() {
     terminal="$1"
-    accel="${KAPSULE_BENCH_PASTE_ACCEL:-terminal_default}"
+    accel="${KTREM_BENCH_PASTE_ACCEL:-terminal_default}"
 
     if [ "$accel" = "terminal_default" ]; then
         accel="ctrl_shift_v"
@@ -313,7 +313,7 @@ run_clipboard_paste_benchmark() {
     run="$2"
     tmp="$3"
     title="ktrem-bench-clipboard-paste-$terminal-$run-$$"
-    marker="KAPSULE_PASTE_DONE_${terminal}_${run}_$$"
+    marker="KTREM_PASTE_DONE_${terminal}_${run}_$$"
     ready="$tmp.ready"
     payload="/tmp/ktrem-bench-clipboard-payload-$terminal-$run-$$.txt"
     owner_ready="/tmp/ktrem-bench-clipboard-owner-$terminal-$run-$$.ready"
@@ -424,7 +424,7 @@ run_find_dialog_benchmark() {
     tmp="$3"
     title="ktrem-bench-find-dialog-$terminal-$run-$$"
     marker="ktremfinddone"
-    needle="${KAPSULE_BENCH_FIND_NEEDLE:-needle-critical}"
+    needle="${KTREM_BENCH_FIND_NEEDLE:-needle-critical}"
     ready="$tmp.ready"
     command="$workload_script find_dialog_target $tmp $marker $needle"
 

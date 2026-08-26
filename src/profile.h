@@ -1,5 +1,5 @@
-#ifndef KAPSULE_PROFILE_H
-#define KAPSULE_PROFILE_H
+#ifndef KTREM_PROFILE_H
+#define KTREM_PROFILE_H
 
 #include "config.h"
 #include "palette.h"

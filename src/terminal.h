@@ -1,5 +1,5 @@
-#ifndef KAPSULE_TERMINAL_H
-#define KAPSULE_TERMINAL_H
+#ifndef KTREM_TERMINAL_H
+#define KTREM_TERMINAL_H
 
 #include "terminal_pane.h"
 #include "ui_tk.h"

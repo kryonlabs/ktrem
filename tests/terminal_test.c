@@ -239,48 +239,48 @@ static int config_terminal_cursor_color_parses(void)
     Config config;
 
     config_defaults(&config);
-    if(config.font_size != KAPSULE_DEFAULT_FONT_SIZE ||
-       config.scrollback_limit != KAPSULE_DEFAULT_SCROLLBACK_LIMIT) {
+    if(config.font_size != KTREM_DEFAULT_FONT_SIZE ||
+       config.scrollback_limit != KTREM_DEFAULT_SCROLLBACK_LIMIT) {
         fprintf(stderr, "profile defaults did not use shared constants\n");
         return 0;
     }
     config_apply_arg(&config, "font-size", "48");
-    if(config.font_size != KAPSULE_MAX_FONT_SIZE) {
+    if(config.font_size != KTREM_MAX_FONT_SIZE) {
         fprintf(stderr, "font-size max did not parse\n");
         return 0;
     }
     config_apply_arg(&config, "font-size", "49");
-    if(config.font_size != KAPSULE_MAX_FONT_SIZE) {
+    if(config.font_size != KTREM_MAX_FONT_SIZE) {
         fprintf(stderr, "font-size above max changed value\n");
         return 0;
     }
     config_apply_arg(&config, "font-size", "10");
-    if(config.font_size != KAPSULE_MIN_FONT_SIZE) {
+    if(config.font_size != KTREM_MIN_FONT_SIZE) {
         fprintf(stderr, "font-size min did not parse\n");
         return 0;
     }
     config_apply_arg(&config, "font-size", "9");
-    if(config.font_size != KAPSULE_MIN_FONT_SIZE) {
+    if(config.font_size != KTREM_MIN_FONT_SIZE) {
         fprintf(stderr, "font-size below min changed value\n");
         return 0;
     }
     config_apply_arg(&config, "scrollback", "100000");
-    if(config.scrollback_limit != KAPSULE_MAX_SCROLLBACK_LIMIT) {
+    if(config.scrollback_limit != KTREM_MAX_SCROLLBACK_LIMIT) {
         fprintf(stderr, "scrollback max did not parse\n");
         return 0;
     }
     config_apply_arg(&config, "scrollback", "100001");
-    if(config.scrollback_limit != KAPSULE_MAX_SCROLLBACK_LIMIT) {
+    if(config.scrollback_limit != KTREM_MAX_SCROLLBACK_LIMIT) {
         fprintf(stderr, "scrollback above max changed value\n");
         return 0;
     }
     config_apply_arg(&config, "scrollback", "100");
-    if(config.scrollback_limit != KAPSULE_MIN_SCROLLBACK_LIMIT) {
+    if(config.scrollback_limit != KTREM_MIN_SCROLLBACK_LIMIT) {
         fprintf(stderr, "scrollback min did not parse\n");
         return 0;
     }
     config_apply_arg(&config, "scrollback", "99");
-    if(config.scrollback_limit != KAPSULE_MIN_SCROLLBACK_LIMIT) {
+    if(config.scrollback_limit != KTREM_MIN_SCROLLBACK_LIMIT) {
         fprintf(stderr, "scrollback below min changed value\n");
         return 0;
     }
@@ -1011,16 +1011,16 @@ static int bash_with_temp_bashrc_outputs(const char *name,
 static int interactive_bash_sources_bashrc(void)
 {
     return bash_with_temp_bashrc_outputs(
-        "interactive bashrc test", "echo KAPSULE_BASHRC_MARKER\nexit\n", NULL,
-        "KAPSULE_BASHRC_MARKER");
+        "interactive bashrc test", "echo KTREM_BASHRC_MARKER\nexit\n", NULL,
+        "KTREM_BASHRC_MARKER");
 }
 
 static int command_bash_sources_bashrc(void)
 {
     return bash_with_temp_bashrc_outputs(
         "command bashrc test",
-        "ktrem_marker() { echo KAPSULE_COMMAND_BASHRC_MARKER; }\n",
-        "ktrem_marker", "KAPSULE_COMMAND_BASHRC_MARKER");
+        "ktrem_marker() { echo KTREM_COMMAND_BASHRC_MARKER; }\n",
+        "ktrem_marker", "KTREM_COMMAND_BASHRC_MARKER");
 }
 
 static int finish_capture(const char *name, TerminalState *terminal, int read_fd,

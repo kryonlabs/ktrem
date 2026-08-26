@@ -51,7 +51,7 @@ static void bench_startup(TerminalState *terminal)
 
     reset_terminal(terminal);
     start_ns = now_ns();
-    feed_text(terminal, "kapsule benchmark startup\n", &bytes);
+    feed_text(terminal, "ktrem benchmark startup\n", &bytes);
     end_ns = now_ns();
     emit_result("startup", start_ns, end_ns, 1, bytes);
 }
@@ -94,7 +94,7 @@ static void bench_unicode_table(TerminalState *terminal)
     start_ns = now_ns();
     for(i = 1; i <= lines; i++) {
         snprintf(line, sizeof(line),
-                 "│ %06d │ Kryon Λambda │ Kapsule ✓ │ width 測試 │ "
+                 "│ %06d │ Kryon Λambda │ ktrem ✓ │ width 測試 │ "
                  "box ──┼── │\n",
                  i);
         feed_text(terminal, line, &bytes);
@@ -175,7 +175,7 @@ static void bench_wrap_reflow(TerminalState *terminal)
         snprintf(line, sizeof(line),
                  "wrap-%05d abcdefghijklmnopqrstuvwxyz0123456789 / "
                  "terminal reflow candidate / "
-                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 / kryon kapsule "
+                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 / kryon ktrem "
                  "xfce compatibility width sample 測試✓Λ │ ──┼── end\n",
                  i);
         feed_text(terminal, line, &bytes);
@@ -198,7 +198,7 @@ static void bench_scrollback_flood(TerminalState *terminal)
     for(i = 1; i <= lines; i++) {
         snprintf(line, sizeof(line),
                  "scrollback %05d abcdefghijklmnopqrstuvwxyz 0123456789 "
-                 "Kapsule Kryon\n",
+                 "ktrem Kryon\n",
                  i);
         feed_text(terminal, line, &bytes);
     }
@@ -274,9 +274,9 @@ static void bench_hyperlink_grid(TerminalState *terminal)
     for(i = 1; i <= lines; i++) {
         snprintf(line, sizeof(line),
                  "link-%05d \033]8;id=item-%05d;"
-                 "https://kapsule.kryonlabs.com/item/%05d\033\\"
-                 "Kapsule benchmark link %05d\033]8;;\033\\ "
-                 "status=%03d path=/tmp/kapsule/%05d\n",
+                 "https://ktrem.kryonlabs.com/item/%05d\033\\"
+                 "ktrem benchmark link %05d\033]8;;\033\\ "
+                 "status=%03d path=/tmp/ktrem/%05d\n",
                  i, i, i, i, i % 200, i);
         feed_text(terminal, line, &bytes);
     }

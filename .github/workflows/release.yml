@@ -16,7 +16,7 @@ permissions:
   contents: write
 
 env:
-  KAPSULE_DIR: kapsule
+  KTREM_DIR: ktrem
   KRYON_CHECKOUT_DIR: kryon
 
 jobs:
@@ -25,10 +25,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out Kapsule
+      - name: Check out ktrem
         uses: actions/checkout@v4
         with:
-          path: ${{ env.KAPSULE_DIR }}
+          path: ${{ env.KTREM_DIR }}
 
       - name: Check out Kryon
         uses: actions/checkout@v4
@@ -61,27 +61,27 @@ jobs:
         working-directory: ${{ env.KRYON_CHECKOUT_DIR }}
         run: make all
 
-      - name: Test Kapsule
-        working-directory: ${{ env.KAPSULE_DIR }}
+      - name: Test ktrem
+        working-directory: ${{ env.KTREM_DIR }}
         env:
           ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_CHECKOUT_DIR }}
         run: make ENGINE_DIR="${ENGINE_DIR}" test
 
-      - name: Build Kapsule
-        working-directory: ${{ env.KAPSULE_DIR }}
+      - name: Build ktrem
+        working-directory: ${{ env.KTREM_DIR }}
         env:
           ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_CHECKOUT_DIR }}
         run: make ENGINE_DIR="${ENGINE_DIR}" all
 
       - name: Package Linux binary
-        working-directory: ${{ env.KAPSULE_DIR }}
+        working-directory: ${{ env.KTREM_DIR }}
         run: |
           set -eu
           version="${GITHUB_REF_NAME:-${GITHUB_SHA}}"
           version="$(printf '%s' "${version}" | tr '/ :' '---')"
-          package="kapsule-linux-x86_64-${version}"
+          package="ktrem-linux-x86_64-${version}"
           mkdir -p "dist/${package}/bin"
-          cp build/linux-x86_64/bin/kapsule "dist/${package}/bin/kapsule"
+          cp build/linux-x86_64/bin/ktrem "dist/${package}/bin/ktrem"
           cp README.md "dist/${package}/README.md"
           cp docs/REMAINING_FEATURE_PLAN.md \
             "dist/${package}/REMAINING_FEATURE_PLAN.md"
@@ -95,14 +95,14 @@ jobs:
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kapsule-linux-x86_64
+          name: ktrem-linux-x86_64
           path: |
-            ${{ env.KAPSULE_DIR }}/dist/*.tar.gz
-            ${{ env.KAPSULE_DIR }}/dist/*.sha256
+            ${{ env.KTREM_DIR }}/dist/*.tar.gz
+            ${{ env.KTREM_DIR }}/dist/*.sha256
 
       - name: Upload release assets
         if: github.event_name == 'release'
-        working-directory: ${{ env.KAPSULE_DIR }}
+        working-directory: ${{ env.KTREM_DIR }}
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}

@@ -1,5 +1,5 @@
-#ifndef KAPSULE_APP_TERMINAL_VIEW_H
-#define KAPSULE_APP_TERMINAL_VIEW_H
+#ifndef KTREM_APP_TERMINAL_VIEW_H
+#define KTREM_APP_TERMINAL_VIEW_H
 
 #include "app_state.h"
 

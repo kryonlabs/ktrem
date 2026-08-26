@@ -10,12 +10,12 @@ TerminalPaneProfileLimits config_profile_limits(void)
 {
     TerminalPaneProfileLimits limits = GetDefaultTerminalPaneProfileLimits();
 
-    limits.default_font_size = KAPSULE_DEFAULT_FONT_SIZE;
-    limits.min_font_size = KAPSULE_MIN_FONT_SIZE;
-    limits.max_font_size = KAPSULE_MAX_FONT_SIZE;
-    limits.default_scrollback_limit = KAPSULE_DEFAULT_SCROLLBACK_LIMIT;
-    limits.min_scrollback_limit = KAPSULE_MIN_SCROLLBACK_LIMIT;
-    limits.max_scrollback_limit = KAPSULE_MAX_SCROLLBACK_LIMIT;
+    limits.default_font_size = KTREM_DEFAULT_FONT_SIZE;
+    limits.min_font_size = KTREM_MIN_FONT_SIZE;
+    limits.max_font_size = KTREM_MAX_FONT_SIZE;
+    limits.default_scrollback_limit = KTREM_DEFAULT_SCROLLBACK_LIMIT;
+    limits.min_scrollback_limit = KTREM_MIN_SCROLLBACK_LIMIT;
+    limits.max_scrollback_limit = KTREM_MAX_SCROLLBACK_LIMIT;
     limits.default_cursor_style = TERMINAL_PANE_CURSOR_BLOCK;
     return limits;
 }

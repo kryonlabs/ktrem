@@ -1,5 +1,5 @@
-#ifndef KAPSULE_TERMINAL_CSI_H
-#define KAPSULE_TERMINAL_CSI_H
+#ifndef KTREM_TERMINAL_CSI_H
+#define KTREM_TERMINAL_CSI_H
 
 #include "terminal.h"
 

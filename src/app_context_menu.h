@@ -1,5 +1,5 @@
-#ifndef KAPSULE_APP_CONTEXT_MENU_H
-#define KAPSULE_APP_CONTEXT_MENU_H
+#ifndef KTREM_APP_CONTEXT_MENU_H
+#define KTREM_APP_CONTEXT_MENU_H
 
 #include "app_state.h"
 

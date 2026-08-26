@@ -23,8 +23,8 @@ static void set_font_size(State *app, int font_size)
 {
     if(app == NULL)
         return;
-    app->config.font_size = clamp_int(font_size, KAPSULE_MIN_FONT_SIZE,
-                                      KAPSULE_MAX_FONT_SIZE);
+    app->config.font_size = clamp_int(font_size, KTREM_MIN_FONT_SIZE,
+                                      KTREM_MAX_FONT_SIZE);
     config_save(&app->config);
 }
 
@@ -83,7 +83,7 @@ void app_execute_command(State *app, int command)
         set_font_size(app, app->config.font_size - 1);
         break;
     case APP_COMMAND_FONT_RESET:
-        set_font_size(app, KAPSULE_DEFAULT_FONT_SIZE);
+        set_font_size(app, KTREM_DEFAULT_FONT_SIZE);
         break;
     case APP_COMMAND_NEXT_TAB:
         if(app->session_count > 0)

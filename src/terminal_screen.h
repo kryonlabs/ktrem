@@ -1,5 +1,5 @@
-#ifndef KAPSULE_TERMINAL_SCREEN_H
-#define KAPSULE_TERMINAL_SCREEN_H
+#ifndef KTREM_TERMINAL_SCREEN_H
+#define KTREM_TERMINAL_SCREEN_H
 
 #include "terminal.h"
 

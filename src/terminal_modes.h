@@ -1,5 +1,5 @@
-#ifndef KAPSULE_TERMINAL_MODES_H
-#define KAPSULE_TERMINAL_MODES_H
+#ifndef KTREM_TERMINAL_MODES_H
+#define KTREM_TERMINAL_MODES_H
 
 #include "terminal.h"
 

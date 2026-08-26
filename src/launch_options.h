@@ -1,5 +1,5 @@
-#ifndef KAPSULE_LAUNCH_OPTIONS_H
-#define KAPSULE_LAUNCH_OPTIONS_H
+#ifndef KTREM_LAUNCH_OPTIONS_H
+#define KTREM_LAUNCH_OPTIONS_H
 
 #include "config.h"
 

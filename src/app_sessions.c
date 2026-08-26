@@ -72,13 +72,13 @@ static void estimate_terminal_grid(State *app, int *cols, int *rows)
         *rows = clamp_int(app->launch.geometry_rows, 4, MAX_ROWS);
         return;
     }
-    UseUIFont("kapsule-terminal");
+    UseUIFont("ktrem-terminal");
     metrics = MeasureTerminalPaneContent(
         TerminalPaneContentBounds(
             (Rectangle){0, 0, (float)GetScreenWidth(), (float)GetScreenHeight()},
             chrome_h, 0),
         app->config.font_size);
-    UseUIFont("kapsule-ui");
+    UseUIFont("ktrem-ui");
     *cols = clamp_int(metrics.cols, 8, MAX_COLS);
     *rows = clamp_int(metrics.rows, 4, MAX_ROWS);
 }

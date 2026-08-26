@@ -16,11 +16,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifndef KAPSULE_KRYON_FONT_PATH
-#define KAPSULE_KRYON_FONT_PATH "fonts/noto/NotoSans-Regular.ttf"
+#ifndef KTREM_KRYON_FONT_PATH
+#define KTREM_KRYON_FONT_PATH "fonts/noto/NotoSans-Regular.ttf"
 #endif
 
-typedef struct KapsuleHost {
+typedef struct KtremHost {
     AppHost host;
     State app;
     AppScreenInfo screen;
@@ -30,12 +30,12 @@ typedef struct KapsuleHost {
     int initialized;
     int burst_ms;
     double fast_poll_until;
-} KapsuleHost;
+} KtremHost;
 
 static int
 target_fps(void)
 {
-    const char *value = getenv("KAPSULE_TARGET_FPS");
+    const char *value = getenv("KTREM_TARGET_FPS");
     char *end = NULL;
     long fps;
 
@@ -50,7 +50,7 @@ target_fps(void)
 static int
 pty_burst_ms(void)
 {
-    const char *value = getenv("KAPSULE_PTY_BURST_MS");
+    const char *value = getenv("KTREM_PTY_BURST_MS");
     char *end = NULL;
     long ms;
 
@@ -128,7 +128,7 @@ static void
 load_kryon_font(const Config *config)
 {
     static const char *ui_paths[] = {
-        KAPSULE_KRYON_FONT_PATH,
+        KTREM_KRYON_FONT_PATH,
         "../kryon/fonts/noto/NotoSans-Regular.ttf",
         "fonts/noto/NotoSans-Regular.ttf",
         "vendor/kryon/fonts/noto/NotoSans-Regular.ttf",
@@ -145,8 +145,8 @@ load_kryon_font(const Config *config)
     int ui_loaded = 0;
 
     for(i = 0; ui_paths[i] != NULL; i++) {
-        if(RegisterUIFontFileSource("kapsule-ui", ui_paths[i], NULL, 0) &&
-           UseUIFont("kapsule-ui")) {
+        if(RegisterUIFontFileSource("ktrem-ui", ui_paths[i], NULL, 0) &&
+           UseUIFont("ktrem-ui")) {
             ui_loaded = 1;
             break;
         }
@@ -154,20 +154,20 @@ load_kryon_font(const Config *config)
     if(!ui_loaded)
         EnsureUIDefaultFont();
     if(config != NULL && config->terminal_font[0] != '\0' &&
-       RegisterUIFontFileSource("kapsule-terminal", config->terminal_font,
+       RegisterUIFontFileSource("ktrem-terminal", config->terminal_font,
                                 NULL, 0))
         goto done;
     for(i = 0; terminal_paths[i] != NULL; i++) {
-        if(RegisterUIFontFileSource("kapsule-terminal", terminal_paths[i],
+        if(RegisterUIFontFileSource("ktrem-terminal", terminal_paths[i],
                                     NULL, 0))
             break;
     }
 done:
-    (void)UseUIFont("kapsule-terminal");
+    (void)UseUIFont("ktrem-terminal");
 }
 
 static void
-kapsule_state_init(KapsuleHost *host)
+ktrem_state_init(KtremHost *host)
 {
     State *app = &host->app;
     int i;
@@ -201,16 +201,16 @@ kapsule_state_init(KapsuleHost *host)
 }
 
 static int
-kapsule_screen_count(void *userdata)
+ktrem_screen_count(void *userdata)
 {
     (void)userdata;
     return 1;
 }
 
 static AppScreenInfo
-kapsule_screen(void *userdata, int index)
+ktrem_screen(void *userdata, int index)
 {
-    KapsuleHost *host = userdata;
+    KtremHost *host = userdata;
     AppScreenInfo empty = {0};
 
     if(host == NULL || index != 0)
@@ -219,14 +219,14 @@ kapsule_screen(void *userdata, int index)
 }
 
 static void
-kapsule_select_screen(void *userdata, int index)
+ktrem_select_screen(void *userdata, int index)
 {
     (void)userdata;
     (void)index;
 }
 
 static int
-kapsule_select_source_path(void *userdata, const char *source_path)
+ktrem_select_source_path(void *userdata, const char *source_path)
 {
     (void)userdata;
     (void)source_path;
@@ -234,9 +234,9 @@ kapsule_select_source_path(void *userdata, const char *source_path)
 }
 
 static void
-kapsule_resize(void *userdata, int width, int height)
+ktrem_resize(void *userdata, int width, int height)
 {
-    KapsuleHost *host = userdata;
+    KtremHost *host = userdata;
 
     if(host == NULL)
         return;
@@ -245,15 +245,15 @@ kapsule_resize(void *userdata, int width, int height)
 }
 
 static void
-kapsule_set_focused(void *userdata, int focused)
+ktrem_set_focused(void *userdata, int focused)
 {
-    KapsuleHost *host = userdata;
+    KtremHost *host = userdata;
     Session *session;
 
     if(host == NULL)
         return;
     if(!host->initialized)
-        kapsule_state_init(host);
+        ktrem_state_init(host);
     if(host->focused == (focused != 0))
         return;
     host->focused = focused != 0;
@@ -264,23 +264,23 @@ kapsule_set_focused(void *userdata, int focused)
 }
 
 static void
-kapsule_opaque_draw_rectangle_rec(Rectangle rect, Color color)
+ktrem_opaque_draw_rectangle_rec(Rectangle rect, Color color)
 {
     color.a = 255;
     DrawRectangleRec(rect, color);
 }
 
 static void
-kapsule_draw(void *userdata, Rectangle viewport)
+ktrem_draw(void *userdata, Rectangle viewport)
 {
-    KapsuleHost *host = userdata;
+    KtremHost *host = userdata;
     State *app;
     Session *session;
 
     if(host == NULL)
         return;
     if(!host->initialized)
-        kapsule_state_init(host);
+        ktrem_state_init(host);
     app = &host->app;
     if(app->session_count == 0)
         open_session(app, NULL);
@@ -301,7 +301,7 @@ kapsule_draw(void *userdata, Rectangle viewport)
         refresh_app_theme(app);
         app->next_theme_refresh = GetTime() + 2.0;
     }
-    kapsule_opaque_draw_rectangle_rec(viewport, app->palette.background);
+    ktrem_opaque_draw_rectangle_rec(viewport, app->palette.background);
     if(session != NULL) {
         BeginScissorMode((int)viewport.x, (int)viewport.y,
                          (int)viewport.width, (int)viewport.height);
@@ -320,7 +320,7 @@ kapsule_draw(void *userdata, Rectangle viewport)
 AppHost *
 CreateAppHost(int abi_version, const char *project_path)
 {
-    KapsuleHost *host;
+    KtremHost *host;
 
     (void)project_path;
     if(abi_version != APP_HOST_ABI_VERSION)
@@ -332,20 +332,20 @@ CreateAppHost(int abi_version, const char *project_path)
     host->screen.group = "Applications";
     host->screen.title = "ktrem";
     host->host.userdata = host;
-    host->host.screen_count = kapsule_screen_count;
-    host->host.screen = kapsule_screen;
-    host->host.select_screen = kapsule_select_screen;
-    host->host.select_source_path = kapsule_select_source_path;
-    host->host.draw = kapsule_draw;
-    host->host.resize = kapsule_resize;
-    host->host.set_focused = kapsule_set_focused;
+    host->host.screen_count = ktrem_screen_count;
+    host->host.screen = ktrem_screen;
+    host->host.select_screen = ktrem_select_screen;
+    host->host.select_source_path = ktrem_select_source_path;
+    host->host.draw = ktrem_draw;
+    host->host.resize = ktrem_resize;
+    host->host.set_focused = ktrem_set_focused;
     return &host->host;
 }
 
 void
 DestroyAppHost(AppHost *app_host)
 {
-    KapsuleHost *host = (KapsuleHost *)app_host;
+    KtremHost *host = (KtremHost *)app_host;
     int i;
 
     if(host == NULL)

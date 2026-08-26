@@ -355,7 +355,7 @@ static void apply_launch_window_state(const LaunchOptions *launch)
 
 static int target_fps(void)
 {
-    const char *value = getenv("KAPSULE_TARGET_FPS");
+    const char *value = getenv("KTREM_TARGET_FPS");
     char *end = NULL;
     long fps;
 
@@ -373,7 +373,7 @@ static int target_fps(void)
 
 static int active_target_fps(int idle_fps)
 {
-    const char *value = getenv("KAPSULE_ACTIVE_FPS");
+    const char *value = getenv("KTREM_ACTIVE_FPS");
     char *end = NULL;
     long fps;
 
@@ -397,7 +397,7 @@ static int active_target_fps(int idle_fps)
 
 static int pty_burst_ms(void)
 {
-    const char *value = getenv("KAPSULE_PTY_BURST_MS");
+    const char *value = getenv("KTREM_PTY_BURST_MS");
     char *end = NULL;
     long ms;
 
@@ -517,8 +517,8 @@ static void load_kryon_font(const Config *config)
     int ui_loaded = 0;
 
     for(i = 0; ui_paths[i] != NULL; i++) {
-        if(RegisterUIFontFileSource("kapsule-ui", ui_paths[i], NULL, 0) &&
-           UseUIFont("kapsule-ui")) {
+        if(RegisterUIFontFileSource("ktrem-ui", ui_paths[i], NULL, 0) &&
+           UseUIFont("ktrem-ui")) {
             ui_loaded = 1;
             break;
         }
@@ -526,27 +526,27 @@ static void load_kryon_font(const Config *config)
     if(!ui_loaded)
         EnsureUIDefaultFont();
     if(config != NULL && config->terminal_font[0] != '\0' &&
-       RegisterUIFontFileSource("kapsule-terminal", config->terminal_font,
+       RegisterUIFontFileSource("ktrem-terminal", config->terminal_font,
                                 codepoints, codepoint_count))
         goto fallbacks;
     for(i = 0; terminal_paths[i] != NULL; i++) {
-        if(RegisterUIFontFileSource("kapsule-terminal", terminal_paths[i],
+        if(RegisterUIFontFileSource("ktrem-terminal", terminal_paths[i],
                                     codepoints, codepoint_count))
             break;
     }
 fallbacks:
-    register_terminal_fallback("kapsule-terminal-cjk", cjk_paths,
+    register_terminal_fallback("ktrem-terminal-cjk", cjk_paths,
                                (int)(sizeof(cjk_paths) / sizeof(cjk_paths[0])),
                                0x6e2c, cjk_codepoints, cjk_codepoint_count);
     register_terminal_fallback(
-        "kapsule-terminal-symbols", symbol_paths,
+        "ktrem-terminal-symbols", symbol_paths,
         (int)(sizeof(symbol_paths) / sizeof(symbol_paths[0])), 0x2800,
         codepoints, codepoint_count);
     register_terminal_fallback(
-        "kapsule-terminal-emoji", emoji_paths,
+        "ktrem-terminal-emoji", emoji_paths,
         (int)(sizeof(emoji_paths) / sizeof(emoji_paths[0])), 0x1f600,
         codepoints, codepoint_count);
-    (void)UseUIFont("kapsule-terminal");
+    (void)UseUIFont("ktrem-terminal");
     free(cjk_codepoints);
     free(codepoints);
 }

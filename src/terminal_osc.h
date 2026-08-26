@@ -1,5 +1,5 @@
-#ifndef KAPSULE_TERMINAL_OSC_H
-#define KAPSULE_TERMINAL_OSC_H
+#ifndef KTREM_TERMINAL_OSC_H
+#define KTREM_TERMINAL_OSC_H
 
 #include "terminal.h"
 

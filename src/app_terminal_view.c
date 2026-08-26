@@ -327,14 +327,14 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     int max_scroll;
 
     seed_theme_defaults_to_terminal(app, terminal);
-    UseUIFont("kapsule-terminal");
+    UseUIFont("ktrem-terminal");
     metrics = MeasureTerminalPaneContent(
         TerminalPaneContentBounds(bounds, chrome_h, 0), app->config.font_size);
     app->cell_w = metrics.cell_width;
     app->line_h = metrics.line_height;
     app->viewport = metrics.content;
     app->visible_rows = metrics.rows;
-    UseUIFont("kapsule-ui");
+    UseUIFont("ktrem-ui");
     terminal_resize(terminal, metrics.cols, metrics.rows);
 
     total_rows = terminal_visible_line_count(terminal);
@@ -359,7 +359,7 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     BeginScissorMode((int)app->viewport.x, (int)app->viewport.y,
                      (int)app->viewport.width, (int)app->viewport.height);
     draw_sixel_images(app, terminal, view_colors);
-    UseUIFont("kapsule-terminal");
+    UseUIFont("ktrem-terminal");
     for(row = 0; row < app->visible_rows; row++) {
         int visible_row = app->first_visible_row + row;
         int y = (int)app->viewport.y + row * app->line_h;
@@ -401,7 +401,7 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
             }
         }
     }
-    UseUIFont("kapsule-ui");
+    UseUIFont("ktrem-ui");
     EndScissorMode();
 
     if(app->bell_until > GetTime()) {
@@ -490,7 +490,7 @@ void draw_starting_frame(State *app)
     Rectangle viewport = TerminalPaneContentBounds(bounds, menu_h + tab_h, 0);
     TerminalPaneColors theme_colors = terminal_theme_tokens();
 
-    UseUIFont("kapsule-ui");
+    UseUIFont("ktrem-ui");
     DrawRectangleRec(bounds, opaque_color(app->palette.background));
     if(menu_h > 0) {
         draw_app_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,

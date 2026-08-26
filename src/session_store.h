@@ -1,5 +1,5 @@
-#ifndef KAPSULE_SESSION_STORE_H
-#define KAPSULE_SESSION_STORE_H
+#ifndef KTREM_SESSION_STORE_H
+#define KTREM_SESSION_STORE_H
 
 #include "session.h"
 

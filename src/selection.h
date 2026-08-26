@@ -1,5 +1,5 @@
-#ifndef KAPSULE_SELECTION_H
-#define KAPSULE_SELECTION_H
+#ifndef KTREM_SELECTION_H
+#define KTREM_SELECTION_H
 
 #include "terminal.h"
 #include "terminal_pane.h"

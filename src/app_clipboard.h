@@ -1,5 +1,5 @@
-#ifndef KAPSULE_APP_CLIPBOARD_H
-#define KAPSULE_APP_CLIPBOARD_H
+#ifndef KTREM_APP_CLIPBOARD_H
+#define KTREM_APP_CLIPBOARD_H
 
 #include "app_state.h"
 

@@ -164,7 +164,7 @@ hyperlink_grid() {
     i=1
     while [ "$i" -le "$lines" ]; do
         printf 'link-%05d ' "$i"
-        printf '\033]8;id=item-%05d;https://kapsule.kryonlabs.com/item/%05d\033\\' "$i" "$i"
+        printf '\033]8;id=item-%05d;https://ktrem.kryonlabs.com/item/%05d\033\\' "$i" "$i"
         printf 'ktrem benchmark link %05d' "$i"
         printf '\033]8;;\033\\'
         printf ' status=%03d path=/tmp/ktrem/%05d\n' "$((i % 200))" "$i"
@@ -253,7 +253,7 @@ with open(out, "w", encoding="utf-8") as result:
 }
 
 find_dialog_target() {
-    marker="${3:-KAPSULE_FIND_DONE}"
+    marker="${3:-KTREM_FIND_DONE}"
     needle="${4:-needle-critical}"
     lines=18000
     i=1

@@ -1,5 +1,5 @@
-#ifndef KAPSULE_APP_STATE_H
-#define KAPSULE_APP_STATE_H
+#ifndef KTREM_APP_STATE_H
+#define KTREM_APP_STATE_H
 
 #include "config.h"
 #include "launch_options.h"

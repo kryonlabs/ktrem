@@ -1,5 +1,5 @@
-#ifndef KAPSULE_TERMINAL_SGR_H
-#define KAPSULE_TERMINAL_SGR_H
+#ifndef KTREM_TERMINAL_SGR_H
+#define KTREM_TERMINAL_SGR_H
 
 #include "terminal.h"
 
