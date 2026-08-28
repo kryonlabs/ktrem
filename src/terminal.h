@@ -184,6 +184,7 @@ typedef struct TerminalState {
     int scrollback_head;
     int scrollback_capacity;
     int scrollback_limit;
+    int ambiguous_width_wide;
     int default_fg;
     int default_bg;
     int cursor_color;
@@ -245,6 +246,7 @@ int terminal_poll(TerminalState *terminal);
 int terminal_poll_bytes(TerminalState *terminal);
 void terminal_resize(TerminalState *terminal, int cols, int rows);
 void terminal_set_scrollback_limit(TerminalState *terminal, int rows);
+void terminal_set_ambiguous_width(TerminalState *terminal, int wide);
 void terminal_close(TerminalState *terminal);
 const Cell *terminal_cell(const TerminalState *terminal, int col, int row);
 const Cell *terminal_visible_cell(const TerminalState *terminal, int col,

@@ -32,6 +32,7 @@ typedef struct State {
     int rename_index;
     int rename_cursor;
     int rename_focused;
+    Rectangle rename_anchor;
     char rename_text[128];
     int search_visible;
     int search_cursor;
@@ -51,11 +52,18 @@ typedef struct State {
     int context_menu_y;
     int paste_shortcut_down;
     int copy_shortcut_down;
+    int new_tab_shortcut_down;
+    int close_tab_shortcut_down;
+    int mouse_hidden;
+    int last_mouse_x;
+    int last_mouse_y;
     int profile_prompt;
     int profile_cursor;
     int profile_focused;
     char profile_text[1024];
     char window_title[160];
+    Texture2D background_texture;
+    char background_texture_path[1024];
     double bell_until;
     double next_theme_refresh;
 } State;

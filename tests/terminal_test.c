@@ -224,6 +224,12 @@ bool IsKeyDown(int key)
     return 0;
 }
 
+bool IsLayoutKeyDown(int codepoint)
+{
+    (void)codepoint;
+    return 0;
+}
+
 int GetKeyPressed(void)
 {
     return 0;

@@ -54,7 +54,7 @@ static void put_codepoint(TerminalState *terminal, unsigned int codepoint)
     if(terminal == NULL || cells == NULL)
         return;
     codepoint = terminal_translate_charset(terminal, codepoint);
-    width = terminal_codepoint_width(codepoint);
+    width = terminal_codepoint_width_for(terminal, codepoint);
     if(width <= 0) {
         if(codepoint < 0x300)
             return;

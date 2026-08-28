@@ -651,7 +651,8 @@ int main(int argc, char **argv)
             SetTargetFPS(GetTime() < fast_poll_until ? busy_fps : idle_fps);
             if(terminal_consume_bell(&session->terminal))
                 app.bell_until = GetTime() + 0.18;
-            session_sync_terminal_metadata(session);
+            session_sync_terminal_metadata_with_mode(
+                session, app.config.dynamic_title_mode);
         }
         sync_window_title(&app);
         if(session != NULL) {
@@ -671,6 +672,7 @@ int main(int argc, char **argv)
         BeginDrawing();
         ClearBackground(app.palette.background);
         BeginUIFrame(frame_width(), frame_height(), 1.0f);
+        app_update_auto_hide_mouse(&app);
         if(session != NULL) {
             draw_terminal_view(&app, session,
                                (Rectangle){0, 0, (float)frame_width(),
@@ -688,6 +690,9 @@ int main(int argc, char **argv)
     save_sessions(&app);
     for(i = 0; i < app.session_count; i++)
         session_close(&app.sessions[i]);
+    release_terminal_view_resources(&app);
+    if(app.mouse_hidden)
+        ShowCursor();
     CloseWindow();
     return 0;
 }

@@ -39,6 +39,22 @@ static void set_default_title(Session *session)
     set_short_title(session, session->cwd, "terminal");
 }
 
+static void default_title_text(const Session *session, char *out, int out_size)
+{
+    if(out == NULL || out_size <= 0)
+        return;
+    out[0] = '\0';
+    if(session == NULL)
+        return;
+    if(session->command[0] != '\0') {
+        (void)FormatTerminalPaneSessionTitle(out, out_size, session->command,
+                                             "terminal");
+        return;
+    }
+    (void)FormatTerminalPaneSessionTitle(out, out_size, session->cwd,
+                                         "terminal");
+}
+
 void session_init(Session *session)
 {
     if(session == NULL)
@@ -109,7 +125,8 @@ void session_restore_title(Session *session, const char *title,
         set_short_title(session, title, "terminal");
 }
 
-void session_sync_terminal_metadata(Session *session)
+void session_sync_terminal_metadata_with_mode(Session *session,
+                                             int dynamic_title_mode)
 {
     if(session == NULL)
         return;
@@ -120,8 +137,40 @@ void session_sync_terminal_metadata(Session *session)
         if(!session->title_override && session->terminal.title[0] == '\0')
             set_default_title(session);
     }
-    if(session->terminal.title[0] != '\0' && !session->title_override)
-        set_short_title(session, session->terminal.title, "terminal");
+    if(session->terminal.title[0] != '\0' && !session->title_override) {
+        char base[128];
+        char composed[512];
+
+        switch(dynamic_title_mode) {
+        case TERMINAL_PANE_TITLE_IGNORE:
+            set_default_title(session);
+            break;
+        case TERMINAL_PANE_TITLE_PREPEND:
+            default_title_text(session, base, (int)sizeof(base));
+            snprintf(composed, sizeof(composed), "%s - %s",
+                     session->terminal.title, base[0] != '\0' ? base :
+                     "terminal");
+            set_short_title(session, composed, "terminal");
+            break;
+        case TERMINAL_PANE_TITLE_APPEND:
+            default_title_text(session, base, (int)sizeof(base));
+            snprintf(composed, sizeof(composed), "%s - %s",
+                     base[0] != '\0' ? base : "terminal",
+                     session->terminal.title);
+            set_short_title(session, composed, "terminal");
+            break;
+        case TERMINAL_PANE_TITLE_REPLACE:
+        default:
+            set_short_title(session, session->terminal.title, "terminal");
+            break;
+        }
+    }
+}
+
+void session_sync_terminal_metadata(Session *session)
+{
+    session_sync_terminal_metadata_with_mode(session,
+                                             TERMINAL_PANE_TITLE_REPLACE);
 }
 
 void session_current_cwd(const Session *session, char *out, int out_size)

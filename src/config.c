@@ -76,6 +76,40 @@ static void write_color(FILE *file, const char *name, int color)
         fprintf(file, "%s=%s\n", name, text);
 }
 
+static const char *config_bool_name(int value)
+{
+    return value ? "true" : "false";
+}
+
+static const char *config_title_mode_name(int mode)
+{
+    switch(mode) {
+    case TERMINAL_PANE_TITLE_PREPEND:
+        return "prepend";
+    case TERMINAL_PANE_TITLE_APPEND:
+        return "append";
+    case TERMINAL_PANE_TITLE_IGNORE:
+        return "ignore";
+    default:
+        break;
+    }
+    return "replace";
+}
+
+static const char *config_key_binding_name(int binding)
+{
+    switch(binding) {
+    case TERMINAL_PANE_KEY_BINDING_CONTROL_H:
+        return "control-h";
+    case TERMINAL_PANE_KEY_BINDING_ESCAPE_SEQUENCE:
+        return "escape-sequence";
+    case TERMINAL_PANE_KEY_BINDING_ASCII_DELETE:
+    default:
+        break;
+    }
+    return "ascii-delete";
+}
+
 static int config_path(char *path, int path_size)
 {
     const char *xdg;
@@ -123,6 +157,15 @@ void config_apply_arg(Config *config, const char *name, const char *value)
 {
     (void)ApplyTerminalPaneProfileSetting(config, config_profile_limits(), name,
                                           value);
+}
+
+int config_effective_scrollback_limit(const Config *config)
+{
+    if(config != NULL && config->unlimited_scrollback)
+        return KTREM_UNLIMITED_SCROLLBACK_LIMIT;
+    if(config == NULL || config->scrollback_limit <= 0)
+        return KTREM_DEFAULT_SCROLLBACK_LIMIT;
+    return config->scrollback_limit;
 }
 
 void config_load(Config *config)
@@ -175,12 +218,37 @@ int config_save(const Config *config)
         return 0;
     fprintf(file, "font_size=%d\n", config->font_size);
     fprintf(file, "scrollback=%d\n", config->scrollback_limit);
+    fprintf(file, "unlimited_scrollback=%s\n",
+            config_bool_name(config->unlimited_scrollback));
     fprintf(file, "cursor_style=%s\n",
             TerminalPaneCursorStyleName(config->cursor_style));
+    fprintf(file, "dynamic_title_mode=%s\n",
+            config_title_mode_name(config->dynamic_title_mode));
+    fprintf(file, "backspace_binding=%s\n",
+            config_key_binding_name(config->backspace_binding));
+    fprintf(file, "delete_binding=%s\n",
+            config_key_binding_name(config->delete_binding));
+    fprintf(file, "ambiguous_width_wide=%s\n",
+            config->ambiguous_width_wide ? "wide" : "narrow");
+    fprintf(file, "allow_bold=%s\n", config_bool_name(config->allow_bold));
+    fprintf(file, "auto_hide_mouse=%s\n",
+            config_bool_name(config->auto_hide_mouse));
+    fprintf(file, "middle_click_closes_tab=%s\n",
+            config_bool_name(config->middle_click_closes_tab));
+    fprintf(file, "always_show_tabs=%s\n",
+            config_bool_name(config->always_show_tabs));
+    fprintf(file, "disable_menu_mnemonics=%s\n",
+            config_bool_name(config->disable_menu_mnemonics));
+    fprintf(file, "disable_menu_shortcut=%s\n",
+            config_bool_name(config->disable_menu_shortcut));
+    fprintf(file, "disable_help_shortcut=%s\n",
+            config_bool_name(config->disable_help_shortcut));
+    fprintf(file, "background_opacity=%d\n", config->background_opacity);
     write_setting(file, "shell", config->shell);
     write_setting(file, "working_directory", config->working_directory);
     write_setting(file, "command", config->command);
     write_setting(file, "terminal_font", config->terminal_font);
+    write_setting(file, "background_image", config->background_image);
     write_color(file, "terminal_foreground", config->terminal_foreground);
     write_color(file, "terminal_background", config->terminal_background);
     write_color(file, "terminal_cursor", config->terminal_cursor);

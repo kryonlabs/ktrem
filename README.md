@@ -12,8 +12,9 @@ make test
 
 Release builds are covered by `.github/workflows/release.yml`: pull requests
 and pushes run the Linux build/test path, and published GitHub Releases upload
-a `ktrem-linux-x86_64` tarball plus checksum. The remaining feature and
-release-readiness plan is tracked in `docs/REMAINING_FEATURE_PLAN.md`.
+Linux `tar.gz`, `.deb`, and `.AppImage` assets plus checksums. The remaining
+feature and release-readiness plan is tracked in
+`docs/REMAINING_FEATURE_PLAN.md`.
 
 By default the build uses `../kryon`. Override with:
 

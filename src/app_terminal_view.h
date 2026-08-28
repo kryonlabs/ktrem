@@ -5,5 +5,6 @@
 
 void draw_terminal_view(State *app, Session *session, Rectangle bounds);
 void draw_starting_frame(State *app);
+void release_terminal_view_resources(State *app);
 
 #endif

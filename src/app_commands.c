@@ -30,10 +30,6 @@ static void set_font_size(State *app, int font_size)
 
 static int handle_alt_tab_shortcut(State *app)
 {
-    static const int number_keys[MAX_SESSIONS] = {
-        KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR,
-        KEY_FIVE, KEY_SIX, KEY_SEVEN, KEY_EIGHT
-    };
     static const int keypad_keys[MAX_SESSIONS] = {
         KEY_KP_1, KEY_KP_2, KEY_KP_3, KEY_KP_4,
         KEY_KP_5, KEY_KP_6, KEY_KP_7, KEY_KP_8
@@ -43,7 +39,7 @@ static int handle_alt_tab_shortcut(State *app)
     if(app == NULL)
         return 0;
     for(i = 0; i < app->session_count && i < MAX_SESSIONS; i++) {
-        if(IsKeyPressed(number_keys[i]) || IsKeyPressed(keypad_keys[i])) {
+        if(IsLayoutKeyPressed('1' + i) || IsKeyPressed(keypad_keys[i])) {
             set_active_session(app, i);
             return 1;
         }
@@ -139,6 +135,48 @@ void app_execute_command(State *app, int command)
     case APP_COMMAND_PROFILE_SELECTION_BACKGROUND:
         open_profile_prompt(app, PROFILE_PROMPT_SELECTION_BACKGROUND);
         break;
+    case APP_COMMAND_PROFILE_DYNAMIC_TITLE_MODE:
+        open_profile_prompt(app, PROFILE_PROMPT_DYNAMIC_TITLE_MODE);
+        break;
+    case APP_COMMAND_PROFILE_BACKSPACE_BINDING:
+        open_profile_prompt(app, PROFILE_PROMPT_BACKSPACE_BINDING);
+        break;
+    case APP_COMMAND_PROFILE_DELETE_BINDING:
+        open_profile_prompt(app, PROFILE_PROMPT_DELETE_BINDING);
+        break;
+    case APP_COMMAND_PROFILE_AMBIGUOUS_WIDTH:
+        open_profile_prompt(app, PROFILE_PROMPT_AMBIGUOUS_WIDTH);
+        break;
+    case APP_COMMAND_PROFILE_ALLOW_BOLD:
+        open_profile_prompt(app, PROFILE_PROMPT_ALLOW_BOLD);
+        break;
+    case APP_COMMAND_PROFILE_UNLIMITED_SCROLLBACK:
+        open_profile_prompt(app, PROFILE_PROMPT_UNLIMITED_SCROLLBACK);
+        break;
+    case APP_COMMAND_PROFILE_AUTO_HIDE_MOUSE:
+        open_profile_prompt(app, PROFILE_PROMPT_AUTO_HIDE_MOUSE);
+        break;
+    case APP_COMMAND_PROFILE_MIDDLE_CLICK_CLOSE_TAB:
+        open_profile_prompt(app, PROFILE_PROMPT_MIDDLE_CLICK_CLOSE_TAB);
+        break;
+    case APP_COMMAND_PROFILE_ALWAYS_SHOW_TABS:
+        open_profile_prompt(app, PROFILE_PROMPT_ALWAYS_SHOW_TABS);
+        break;
+    case APP_COMMAND_PROFILE_DISABLE_MENU_MNEMONICS:
+        open_profile_prompt(app, PROFILE_PROMPT_DISABLE_MENU_MNEMONICS);
+        break;
+    case APP_COMMAND_PROFILE_DISABLE_MENU_SHORTCUT:
+        open_profile_prompt(app, PROFILE_PROMPT_DISABLE_MENU_SHORTCUT);
+        break;
+    case APP_COMMAND_PROFILE_DISABLE_HELP_SHORTCUT:
+        open_profile_prompt(app, PROFILE_PROMPT_DISABLE_HELP_SHORTCUT);
+        break;
+    case APP_COMMAND_PROFILE_BACKGROUND_OPACITY:
+        open_profile_prompt(app, PROFILE_PROMPT_BACKGROUND_OPACITY);
+        break;
+    case APP_COMMAND_PROFILE_BACKGROUND_IMAGE:
+        open_profile_prompt(app, PROFILE_PROMPT_BACKGROUND_IMAGE);
+        break;
     case APP_COMMAND_CURSOR_BLOCK:
         app->config.cursor_style = TERMINAL_CURSOR_BLOCK;
         config_save(&app->config);
@@ -170,11 +208,11 @@ int app_handle_shortcuts(State *app)
         return 0;
     if(alt && handle_alt_tab_shortcut(app))
         return 1;
-    if(ctrl && shift && IsKeyPressed(KEY_T)) {
+    if(ctrl && shift && IsLayoutKeyPressed('t')) {
         app_execute_command(app, APP_COMMAND_NEW_TAB);
         return 1;
     }
-    if(ctrl && shift && IsKeyPressed(KEY_W)) {
+    if(ctrl && shift && IsLayoutKeyPressed('w')) {
         app_execute_command(app, APP_COMMAND_CLOSE_TAB);
         return 1;
     }
@@ -214,31 +252,31 @@ int app_handle_shortcuts(State *app)
         app_execute_command(app, APP_COMMAND_PASTE);
         return 1;
     }
-    if(ctrl && shift && IsKeyPressed(KEY_C)) {
+    if(ctrl && shift && IsLayoutKeyPressed('c')) {
         app_execute_command(app, APP_COMMAND_COPY);
         return 1;
     }
-    if(ctrl && shift && IsKeyPressed(KEY_V)) {
+    if(ctrl && shift && IsLayoutKeyPressed('v')) {
         app_execute_command(app, APP_COMMAND_PASTE);
         return 1;
     }
-    if(ctrl && shift && IsKeyPressed(KEY_A)) {
+    if(ctrl && shift && IsLayoutKeyPressed('a')) {
         app_execute_command(app, APP_COMMAND_SELECT_ALL);
         return 1;
     }
-    if(ctrl && shift && IsKeyPressed(KEY_F)) {
+    if(ctrl && shift && IsLayoutKeyPressed('f')) {
         app_execute_command(app, APP_COMMAND_FIND);
         return 1;
     }
-    if(ctrl && shift && IsKeyPressed(KEY_G)) {
+    if(ctrl && shift && IsLayoutKeyPressed('g')) {
         app_execute_command(app, APP_COMMAND_FIND_NEXT);
         return 1;
     }
-    if(ctrl && shift && IsKeyPressed(KEY_B)) {
+    if(ctrl && shift && IsLayoutKeyPressed('b')) {
         app_execute_command(app, APP_COMMAND_FIND_PREVIOUS);
         return 1;
     }
-    if(ctrl && shift && IsKeyPressed(KEY_Q)) {
+    if(ctrl && shift && IsLayoutKeyPressed('q')) {
         app_execute_command(app, APP_COMMAND_QUIT);
         return 1;
     }

@@ -8,6 +8,7 @@ void set_active_session(State *app, int index);
 void seed_theme_defaults_to_terminal(State *app, TerminalState *terminal);
 void open_session(State *app, const char *command);
 int open_launch_sessions(State *app);
+void move_session(State *app, int from_index, int to_index);
 void close_session(State *app, int index);
 void save_sessions(State *app);
 int restore_sessions(State *app);

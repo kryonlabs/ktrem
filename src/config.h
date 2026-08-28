@@ -9,6 +9,7 @@
 #define KTREM_DEFAULT_SCROLLBACK_LIMIT 5000
 #define KTREM_MIN_SCROLLBACK_LIMIT 100
 #define KTREM_MAX_SCROLLBACK_LIMIT 100000
+#define KTREM_UNLIMITED_SCROLLBACK_LIMIT 1000000
 
 typedef TerminalPaneProfileSettings Config;
 
@@ -17,5 +18,6 @@ void config_defaults(Config *config);
 void config_load(Config *config);
 int config_save(const Config *config);
 void config_apply_arg(Config *config, const char *name, const char *value);
+int config_effective_scrollback_limit(const Config *config);
 
 #endif

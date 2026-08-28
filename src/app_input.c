@@ -24,6 +24,58 @@ static int clamp_int(int value, int low, int high)
     return value;
 }
 
+static int layout_key_matches(int platform_key, int codepoint)
+{
+    return GetLayoutKeyCodepoint(platform_key) == codepoint;
+}
+
+static int any_key_pressed(void)
+{
+    int key;
+
+    for(key = KEY_SPACE; key <= KEY_KB_MENU; key++) {
+        if(IsKeyPressed(key))
+            return 1;
+    }
+    return 0;
+}
+
+void app_update_auto_hide_mouse(State *app)
+{
+    Vector2 mouse;
+    int mouse_x;
+    int mouse_y;
+
+    if(app == NULL)
+        return;
+    mouse = GetMousePosition();
+    mouse_x = (int)mouse.x;
+    mouse_y = (int)mouse.y;
+    if(!app->config.auto_hide_mouse || !IsWindowFocused()) {
+        if(app->mouse_hidden)
+            ShowCursor();
+        app->mouse_hidden = 0;
+        app->last_mouse_x = mouse_x;
+        app->last_mouse_y = mouse_y;
+        return;
+    }
+    if(mouse_x != app->last_mouse_x || mouse_y != app->last_mouse_y ||
+       IsMouseButtonPressed(MOUSE_BUTTON_LEFT) ||
+       IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE) ||
+       IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+        if(app->mouse_hidden)
+            ShowCursor();
+        app->mouse_hidden = 0;
+    } else if(any_key_pressed() && CheckCollisionPointRec(mouse,
+                                                          app->viewport)) {
+        if(!app->mouse_hidden)
+            HideCursor();
+        app->mouse_hidden = 1;
+    }
+    app->last_mouse_x = mouse_x;
+    app->last_mouse_y = mouse_y;
+}
+
 static int visible_row_from_mouse(const State *app, Vector2 mouse)
 {
     int row;
@@ -282,9 +334,23 @@ static int handle_terminal_keyboard_shortcut(void *userdata, const char *text,
 {
     State *app = userdata;
     int shift = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
+    Session *session;
 
     if(app == NULL || text == NULL)
         return 0;
+    session = active_session(app);
+    if(session == NULL)
+        return 0;
+    if(length == 1 && text[0] == '\x7f' &&
+       app->config.backspace_binding == TERMINAL_PANE_KEY_BINDING_CONTROL_H) {
+        terminal_write(&session->terminal, "\x08", 1);
+        return 1;
+    }
+    if(length == 4 && memcmp(text, "\x1b[3~", 4) == 0 &&
+       app->config.delete_binding == TERMINAL_PANE_KEY_BINDING_ASCII_DELETE) {
+        terminal_write(&session->terminal, "\x7f", 1);
+        return 1;
+    }
     if((length == 6 && memcmp(text, "\x1b[2;2~", 6) == 0) ||
        (length == 4 && shift && memcmp(text, "\x1b[2~", 4) == 0)) {
         app_execute_command(app, APP_COMMAND_PASTE);
@@ -303,14 +369,87 @@ static int handle_terminal_key_shortcut(void *userdata, int platform_key,
     State *app = userdata;
     int ctrl = (mods & TERMINAL_PANE_MOD_CTRL) != 0;
     int shift = (mods & TERMINAL_PANE_MOD_SHIFT) != 0;
+    int alt = (mods & TERMINAL_PANE_MOD_ALT) != 0;
 
     if(app == NULL)
         return 0;
-    if(ctrl && shift && platform_key == KEY_V) {
+    if(alt) {
+        static const int keypad_keys[MAX_SESSIONS] = {
+            KEY_KP_1, KEY_KP_2, KEY_KP_3, KEY_KP_4,
+            KEY_KP_5, KEY_KP_6, KEY_KP_7, KEY_KP_8
+        };
+        int i;
+
+        for(i = 0; i < app->session_count && i < MAX_SESSIONS; i++) {
+            if(layout_key_matches(platform_key, '1' + i) ||
+               platform_key == keypad_keys[i]) {
+                set_active_session(app, i);
+                return 1;
+            }
+        }
+    }
+    if(ctrl && shift && layout_key_matches(platform_key, 't')) {
+        app_execute_command(app, APP_COMMAND_NEW_TAB);
+        return 1;
+    }
+    if(ctrl && shift && layout_key_matches(platform_key, 'w')) {
+        app_execute_command(app, APP_COMMAND_CLOSE_TAB);
+        return 1;
+    }
+    if(ctrl && shift && platform_key == KEY_TAB) {
+        app_execute_command(app, APP_COMMAND_PREVIOUS_TAB);
+        return 1;
+    }
+    if(ctrl && platform_key == KEY_TAB) {
+        app_execute_command(app, APP_COMMAND_NEXT_TAB);
+        return 1;
+    }
+    if(ctrl && platform_key == KEY_PAGE_UP) {
+        app_execute_command(app, APP_COMMAND_PREVIOUS_TAB);
+        return 1;
+    }
+    if(ctrl && platform_key == KEY_PAGE_DOWN) {
+        app_execute_command(app, APP_COMMAND_NEXT_TAB);
+        return 1;
+    }
+    if(ctrl && (platform_key == KEY_EQUAL || platform_key == KEY_KP_ADD)) {
+        app_execute_command(app, APP_COMMAND_FONT_INCREASE);
+        return 1;
+    }
+    if(ctrl && (platform_key == KEY_MINUS ||
+                platform_key == KEY_KP_SUBTRACT)) {
+        app_execute_command(app, APP_COMMAND_FONT_DECREASE);
+        return 1;
+    }
+    if(ctrl && (platform_key == KEY_ZERO || platform_key == KEY_KP_0)) {
+        app_execute_command(app, APP_COMMAND_FONT_RESET);
+        return 1;
+    }
+    if(ctrl && shift && layout_key_matches(platform_key, 'a')) {
+        app_execute_command(app, APP_COMMAND_SELECT_ALL);
+        return 1;
+    }
+    if(ctrl && shift && layout_key_matches(platform_key, 'f')) {
+        app_execute_command(app, APP_COMMAND_FIND);
+        return 1;
+    }
+    if(ctrl && shift && layout_key_matches(platform_key, 'g')) {
+        app_execute_command(app, APP_COMMAND_FIND_NEXT);
+        return 1;
+    }
+    if(ctrl && shift && layout_key_matches(platform_key, 'b')) {
+        app_execute_command(app, APP_COMMAND_FIND_PREVIOUS);
+        return 1;
+    }
+    if(ctrl && shift && layout_key_matches(platform_key, 'q')) {
+        app_execute_command(app, APP_COMMAND_QUIT);
+        return 1;
+    }
+    if(ctrl && shift && layout_key_matches(platform_key, 'v')) {
         app_execute_command(app, APP_COMMAND_PASTE);
         return 1;
     }
-    if((ctrl && shift && platform_key == KEY_C) ||
+    if((ctrl && shift && layout_key_matches(platform_key, 'c')) ||
        (ctrl && platform_key == KEY_INSERT)) {
         app_execute_command(app, APP_COMMAND_COPY);
         return 1;
@@ -322,13 +461,33 @@ static int handle_down_edge_shortcuts(State *app, int ctrl, int shift)
 {
     int paste_down;
     int copy_down;
+    int new_tab_down;
+    int close_tab_down;
 
     if(app == NULL)
         return 0;
+    new_tab_down = ctrl && shift && IsLayoutKeyDown('t');
+    close_tab_down = ctrl && shift && IsLayoutKeyDown('w');
+    if(new_tab_down) {
+        if(!app->new_tab_shortcut_down)
+            app_execute_command(app, APP_COMMAND_NEW_TAB);
+        app->new_tab_shortcut_down = 1;
+        app->close_tab_shortcut_down = close_tab_down;
+        return 1;
+    }
+    if(close_tab_down) {
+        if(!app->close_tab_shortcut_down)
+            app_execute_command(app, APP_COMMAND_CLOSE_TAB);
+        app->close_tab_shortcut_down = 1;
+        app->new_tab_shortcut_down = 0;
+        return 1;
+    }
+    app->new_tab_shortcut_down = 0;
+    app->close_tab_shortcut_down = 0;
     paste_down = (shift && IsKeyDown(KEY_INSERT)) ||
-                 (ctrl && shift && IsKeyDown(KEY_V));
+                 (ctrl && shift && IsLayoutKeyDown('v'));
     copy_down = (ctrl && IsKeyDown(KEY_INSERT)) ||
-                (ctrl && shift && IsKeyDown(KEY_C));
+                (ctrl && shift && IsLayoutKeyDown('c'));
     if(paste_down) {
         if(!app->paste_shortcut_down)
             app_execute_command(app, APP_COMMAND_PASTE);
@@ -412,11 +571,11 @@ void app_handle_input(State *app)
     if(app_handle_shortcuts(app))
         return;
 
-    if(ctrl && shift && (IsKeyDown(KEY_A) || IsKeyDown(KEY_B) ||
-                         IsKeyDown(KEY_C) || IsKeyDown(KEY_G) ||
-                         IsKeyDown(KEY_V) || IsKeyDown(KEY_T) ||
-                         IsKeyDown(KEY_W) || IsKeyDown(KEY_F) ||
-                         IsKeyDown(KEY_Q)))
+    if(ctrl && shift && (IsLayoutKeyDown('a') || IsLayoutKeyDown('b') ||
+                         IsLayoutKeyDown('c') || IsLayoutKeyDown('g') ||
+                         IsLayoutKeyDown('v') || IsLayoutKeyDown('t') ||
+                         IsLayoutKeyDown('w') || IsLayoutKeyDown('f') ||
+                         IsLayoutKeyDown('q')))
         return;
     if(IsWindowFocused()) {
         if(IsKeyPressed(KEY_PAGE_UP) && shift) {

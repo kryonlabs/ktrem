@@ -47,7 +47,7 @@ void draw_app_menu_bar(State *app, Rectangle bounds)
          APP_COMMAND_CURSOR_BAR, 0, 0, NULL, 0}
     };
     static const MenuItem terminal_items[] = {
-        {MenuCommand, "New Terminal", "Ctrl+Shift+T",
+        {MenuCommand, "New Tab", "Ctrl+Shift+T",
          APP_COMMAND_NEW_TAB, 0, 0, NULL, 0},
         {MenuCommand, "Paste", "Ctrl+Shift+V",
          APP_COMMAND_PASTE, 0, 0, NULL, 0},
@@ -73,16 +73,47 @@ void draw_app_menu_bar(State *app, Rectangle bounds)
         {MenuCommand, "Selection Background...", NULL,
          APP_COMMAND_PROFILE_SELECTION_BACKGROUND, 0, 0, NULL, 0},
         {MenuSubmenu, "Cursor Style", NULL, 2500, 0, 0, cursor_items,
-         (int)(sizeof(cursor_items) / sizeof(cursor_items[0]))}
+         (int)(sizeof(cursor_items) / sizeof(cursor_items[0]))},
+        {MenuSeparator, NULL, NULL, 0, 0, 0, NULL, 0},
+        {MenuCommand, "Dynamic Title Mode...", NULL,
+         APP_COMMAND_PROFILE_DYNAMIC_TITLE_MODE, 0, 0, NULL, 0},
+        {MenuCommand, "Backspace Key...", NULL,
+         APP_COMMAND_PROFILE_BACKSPACE_BINDING, 0, 0, NULL, 0},
+        {MenuCommand, "Delete Key...", NULL,
+         APP_COMMAND_PROFILE_DELETE_BINDING, 0, 0, NULL, 0},
+        {MenuCommand, "Ambiguous Width...", NULL,
+         APP_COMMAND_PROFILE_AMBIGUOUS_WIDTH, 0, 0, NULL, 0},
+        {MenuCommand, "Allow Bold Text...", NULL,
+         APP_COMMAND_PROFILE_ALLOW_BOLD, 0, 0, NULL, 0},
+        {MenuCommand, "Unlimited Scrollback...", NULL,
+         APP_COMMAND_PROFILE_UNLIMITED_SCROLLBACK, 0, 0, NULL, 0},
+        {MenuCommand, "Auto-hide Mouse...", NULL,
+         APP_COMMAND_PROFILE_AUTO_HIDE_MOUSE, 0, 0, NULL, 0},
+        {MenuCommand, "Middle Click Closes Tab...", NULL,
+         APP_COMMAND_PROFILE_MIDDLE_CLICK_CLOSE_TAB, 0, 0, NULL, 0},
+        {MenuCommand, "Always Show Tabs...", NULL,
+         APP_COMMAND_PROFILE_ALWAYS_SHOW_TABS, 0, 0, NULL, 0},
+        {MenuCommand, "Disable Menu Access Keys...", NULL,
+         APP_COMMAND_PROFILE_DISABLE_MENU_MNEMONICS, 0, 0, NULL, 0},
+        {MenuCommand, "Disable F10 Menu Shortcut...", NULL,
+         APP_COMMAND_PROFILE_DISABLE_MENU_SHORTCUT, 0, 0, NULL, 0},
+        {MenuCommand, "Disable F1 Help Shortcut...", NULL,
+         APP_COMMAND_PROFILE_DISABLE_HELP_SHORTCUT, 0, 0, NULL, 0},
+        {MenuCommand, "Background Opacity...", NULL,
+         APP_COMMAND_PROFILE_BACKGROUND_OPACITY, 0, 0, NULL, 0},
+        {MenuCommand, "Background Image...", NULL,
+         APP_COMMAND_PROFILE_BACKGROUND_IMAGE, 0, 0, NULL, 0}
     };
     static const MenuItem tab_items[] = {
+        {MenuCommand, "New Tab", "Ctrl+Shift+T",
+         APP_COMMAND_NEW_TAB, 0, 0, NULL, 0},
+        {MenuCommand, "Close Tab", "Ctrl+Shift+W",
+         APP_COMMAND_CLOSE_TAB, 0, 0, NULL, 0},
+        {MenuSeparator, NULL, NULL, 0, 0, 0, NULL, 0},
         {MenuCommand, "Next Tab", "Ctrl+Tab",
          APP_COMMAND_NEXT_TAB, 0, 0, NULL, 0},
         {MenuCommand, "Previous Tab", "Ctrl+Shift+Tab",
-         APP_COMMAND_PREVIOUS_TAB, 0, 0, NULL, 0},
-        {MenuSeparator, NULL, NULL, 0, 0, 0, NULL, 0},
-        {MenuCommand, "Close Tab", "Ctrl+Shift+W",
-         APP_COMMAND_CLOSE_TAB, 0, 0, NULL, 0}
+         APP_COMMAND_PREVIOUS_TAB, 0, 0, NULL, 0}
     };
     static const MenuItem help_items[] = {
         {MenuCommand, "About ktrem", NULL,

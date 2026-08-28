@@ -1,6 +1,7 @@
 #include "app_profile.h"
 
 #include "app_sessions.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -81,7 +82,13 @@ void apply_profile_prompt(State *app)
     if(TerminalPaneProfilePromptAffectsScrollback(app->profile_prompt)) {
         for(i = 0; i < app->session_count; i++)
             terminal_set_scrollback_limit(&app->sessions[i].terminal,
-                                          app->config.scrollback_limit);
+                                          config_effective_scrollback_limit(
+                                              &app->config));
+    }
+    if(app->profile_prompt == PROFILE_PROMPT_AMBIGUOUS_WIDTH) {
+        for(i = 0; i < app->session_count; i++)
+            terminal_set_ambiguous_width(&app->sessions[i].terminal,
+                                         app->config.ambiguous_width_wide);
     }
     if(affects_colors)
         sync_terminal_theme_defaults(app, old_colors);

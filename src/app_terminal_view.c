@@ -1,5 +1,6 @@
 #include "app_terminal_view.h"
 
+#include "app_chrome.h"
 #include "app_context_menu.h"
 #include "app_menu.h"
 #include "app_profile.h"
@@ -44,16 +45,93 @@ opaque_color(Color color)
     return color;
 }
 
+static Color alpha_color(Color color, int opacity)
+{
+    opacity = clamp_int(opacity, 0, 100);
+    color.a = (unsigned char)(opacity * 255 / 100);
+    return color;
+}
+
+static void release_background_texture(State *app)
+{
+    if(app == NULL)
+        return;
+    if(app->background_texture.id != 0)
+        UnloadTexture(app->background_texture);
+    memset(&app->background_texture, 0, sizeof(app->background_texture));
+    app->background_texture_path[0] = '\0';
+}
+
+void release_terminal_view_resources(State *app)
+{
+    release_background_texture(app);
+}
+
+static void sync_background_texture(State *app)
+{
+    if(app == NULL)
+        return;
+    if(strcmp(app->background_texture_path,
+              app->config.background_image) == 0)
+        return;
+    release_background_texture(app);
+    if(app->config.background_image[0] == '\0')
+        return;
+    app->background_texture = LoadTexture(app->config.background_image);
+    if(app->background_texture.id != 0)
+        snprintf(app->background_texture_path,
+                 sizeof(app->background_texture_path), "%s",
+                 app->config.background_image);
+}
+
+static void draw_background_texture(State *app, Rectangle viewport)
+{
+    Texture2D texture;
+    float scale;
+    float w;
+    float h;
+    Rectangle dst;
+
+    if(app == NULL)
+        return;
+    sync_background_texture(app);
+    texture = app->background_texture;
+    if(texture.id == 0 || texture.width <= 0 || texture.height <= 0)
+        return;
+    scale = viewport.width / (float)texture.width;
+    if((float)texture.height * scale < viewport.height)
+        scale = viewport.height / (float)texture.height;
+    w = (float)texture.width * scale;
+    h = (float)texture.height * scale;
+    dst = (Rectangle){
+        viewport.x + (viewport.width - w) * 0.5f,
+        viewport.y + (viewport.height - h) * 0.5f,
+        w,
+        h
+    };
+    BeginScissorMode((int)viewport.x, (int)viewport.y,
+                     (int)viewport.width, (int)viewport.height);
+    DrawTexturePro(texture,
+                   (Rectangle){0.0f, 0.0f, (float)texture.width,
+                               (float)texture.height},
+                   dst, (Vector2){0.0f, 0.0f}, 0.0f, WHITE);
+    EndScissorMode();
+}
+
 static void draw_tabs(State *app, Rectangle bounds)
 {
-    Tab tabs[MAX_SESSIONS + 1];
+    Tab tabs[MAX_SESSIONS];
     int i;
     int count;
     int clicked;
     int closed = -1;
+    int middle_clicked = -1;
     int double_clicked = -1;
+    int reordered_from = -1;
+    int reordered_to = -1;
+    Rectangle selected_bounds = {0.0f, 0.0f, 0.0f, 0.0f};
 
-    if(app == NULL)
+    if(app == NULL || !app_tab_bar_visible(app))
         return;
     memset(tabs, 0, sizeof(tabs));
     for(i = 0; i < app->session_count; i++) {
@@ -61,10 +139,6 @@ static void draw_tabs(State *app, Rectangle bounds)
         tabs[i].closeable = app->session_count > 1;
     }
     count = app->session_count;
-    if(count < MAX_SESSIONS) {
-        tabs[count].label = "+";
-        count++;
-    }
     clicked = TabBar((TabBarProps){
         bounds,
         tabs,
@@ -76,8 +150,22 @@ static void draw_tabs(State *app, Rectangle bounds)
         &app->tab_scroll,
         1,
         &closed,
-        &double_clicked
+        &double_clicked,
+        &reordered_from,
+        &reordered_to,
+        &selected_bounds,
+        &middle_clicked
     });
+    if(reordered_from >= 0 && reordered_from < app->session_count &&
+       reordered_to >= 0 && reordered_to < app->session_count) {
+        move_session(app, reordered_from, reordered_to);
+        return;
+    }
+    if(middle_clicked >= 0 && middle_clicked < app->session_count &&
+       app->config.middle_click_closes_tab) {
+        close_session(app, middle_clicked);
+        return;
+    }
     if(closed >= 0 && closed < app->session_count) {
         close_session(app, closed);
         return;
@@ -89,14 +177,13 @@ static void draw_tabs(State *app, Rectangle bounds)
         snprintf(app->rename_text, sizeof(app->rename_text), "%s", title);
         app->rename_cursor = (int)strlen(app->rename_text);
         app->rename_focused = 1;
+        app->rename_anchor = selected_bounds;
         set_active_session(app, double_clicked);
         return;
     }
     if(clicked >= 0) {
         if(clicked < app->session_count)
             set_active_session(app, clicked);
-        else
-            open_session(app, NULL);
     }
 }
 
@@ -110,7 +197,7 @@ static int cell_text(const Cell *cell, char *text, int text_size)
     codepoint = cell->codepoint;
     if(text == NULL || text_size < 2 || codepoint == 0 || codepoint == ' ') {
         if(text != NULL && text_size > 0)
-        text[0] = '\0';
+            text[0] = '\0';
         return 0;
     }
     if(!AppendTerminalPaneUTF8Codepoint(text, text_size, &len, codepoint))
@@ -227,6 +314,9 @@ static void draw_line_cells(State *app, const TerminalState *terminal,
             continue;
         Text(text, (int)app->viewport.x + col * app->cell_w, y,
              app->config.font_size, fg);
+        if(app->config.allow_bold && (cell->style & STYLE_BOLD) != 0)
+            Text(text, (int)app->viewport.x + col * app->cell_w + 1, y,
+                 app->config.font_size, fg);
         if(linked && !selected)
             underline = theme_colors.link;
         if((cell->style & STYLE_UNDERLINE) != 0 || linked)
@@ -316,8 +406,8 @@ static void draw_sixel_images(State *app, const TerminalState *terminal,
 void draw_terminal_view(State *app, Session *session, Rectangle bounds)
 {
     TerminalState *terminal = &session->terminal;
-    int menu_h = app->launch.show_menubar ? ScaleUIPx(34) : 0;
-    int tab_h = app->launch.show_toolbar ? TabBarHeight() : 0;
+    int menu_h = app_menu_bar_height(app);
+    int tab_h = app_tab_bar_height(app);
     int chrome_h = menu_h + tab_h;
     TerminalPaneMetrics metrics;
     TerminalPaneColors theme_colors;
@@ -354,7 +444,10 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
         draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
                                    bounds.width, (float)tab_h});
     }
-    DrawRectangleRec(app->viewport, opaque_color(view_colors.background));
+    draw_background_texture(app, app->viewport);
+    DrawRectangleRec(app->viewport,
+                     alpha_color(view_colors.background,
+                                 app->config.background_opacity));
 
     BeginScissorMode((int)app->viewport.x, (int)app->viewport.y,
                      (int)app->viewport.width, (int)app->viewport.height);
@@ -457,14 +550,16 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
         }
     }
     if(app->rename_index >= 0 && app->rename_index < app->session_count) {
-        int result = PromptDialog((PromptDialogProps){
-            "Rename Tab",
+        int result = TextPopover((TextPopoverProps){
+            app->rename_anchor,
+            "Title:",
             app->rename_text,
             (int)sizeof(app->rename_text),
             &app->rename_cursor,
             &app->rename_focused,
-            "Cancel",
-            "Rename"
+            9301,
+            300,
+            (int)sizeof(app->rename_text) - 1
         });
 
         if(result == 1) {
@@ -485,8 +580,8 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
 void draw_starting_frame(State *app)
 {
     Rectangle bounds = {0, 0, (float)GetScreenWidth(), (float)GetScreenHeight()};
-    int menu_h = app->launch.show_menubar ? ScaleUIPx(34) : 0;
-    int tab_h = app->launch.show_toolbar ? TabBarHeight() : 0;
+    int menu_h = app_menu_bar_height(app);
+    int tab_h = app_tab_bar_height(app);
     Rectangle viewport = TerminalPaneContentBounds(bounds, menu_h + tab_h, 0);
     TerminalPaneColors theme_colors = terminal_theme_tokens();
 
@@ -500,7 +595,10 @@ void draw_starting_frame(State *app)
         draw_tabs(app, (Rectangle){bounds.x, bounds.y + (float)menu_h,
                                    bounds.width, (float)tab_h});
     }
-    DrawRectangleRec(viewport, opaque_color(theme_colors.background));
+    draw_background_texture(app, viewport);
+    DrawRectangleRec(viewport,
+                     alpha_color(theme_colors.background,
+                                 app->config.background_opacity));
     Text("Starting terminal...", (int)viewport.x + 10,
          (int)viewport.y + 10, app->config.font_size, theme_colors.text);
 }

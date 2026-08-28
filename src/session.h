@@ -24,6 +24,8 @@ void session_set_title(Session *session, const char *title);
 void session_restore_title(Session *session, const char *title,
                            int title_override);
 void session_sync_terminal_metadata(Session *session);
+void session_sync_terminal_metadata_with_mode(Session *session,
+                                             int dynamic_title_mode);
 void session_current_cwd(const Session *session, char *out, int out_size);
 
 #endif

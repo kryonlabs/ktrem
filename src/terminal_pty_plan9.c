@@ -432,13 +432,20 @@ void terminal_set_scrollback_limit(TerminalState *terminal, int rows)
         return;
     if(rows < 0)
         rows = 0;
-    if(rows > 100000)
-        rows = 100000;
+    if(rows > 1000000)
+        rows = 1000000;
     if(rows == 0)
         rows = SCROLLBACK_LIMIT;
     terminal->scrollback_limit = rows;
     if(terminal->cols > 0)
         terminal_allocate_scrollback(terminal);
+}
+
+void terminal_set_ambiguous_width(TerminalState *terminal, int wide)
+{
+    if(terminal == NULL)
+        return;
+    terminal->ambiguous_width_wide = wide ? 1 : 0;
 }
 
 void terminal_close(TerminalState *terminal)

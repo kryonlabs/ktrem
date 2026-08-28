@@ -294,7 +294,8 @@ ktrem_draw(void *userdata, Rectangle viewport)
             host->fast_poll_until = GetTime() + 0.25;
         if(terminal_consume_bell(&session->terminal))
             app->bell_until = GetTime() + 0.18;
-        session_sync_terminal_metadata(session);
+        session_sync_terminal_metadata_with_mode(
+            session, app->config.dynamic_title_mode);
         flush_terminal_clipboard_to_host(session);
     }
     if(GetTime() >= app->next_theme_refresh) {
@@ -302,6 +303,7 @@ ktrem_draw(void *userdata, Rectangle viewport)
         app->next_theme_refresh = GetTime() + 2.0;
     }
     ktrem_opaque_draw_rectangle_rec(viewport, app->palette.background);
+    app_update_auto_hide_mouse(app);
     if(session != NULL) {
         BeginScissorMode((int)viewport.x, (int)viewport.y,
                          (int)viewport.width, (int)viewport.height);
@@ -354,6 +356,9 @@ DestroyAppHost(AppHost *app_host)
         save_sessions(&host->app);
         for(i = 0; i < host->app.session_count; i++)
             session_close(&host->app.sessions[i]);
+        release_terminal_view_resources(&host->app);
+        if(host->app.mouse_hidden)
+            ShowCursor();
     }
     free(host);
 }

@@ -1,5 +1,7 @@
 #include "app_sessions.h"
 
+#include "app_chrome.h"
+#include "config.h"
 #include "profile.h"
 #include "session_store.h"
 
@@ -56,9 +58,7 @@ static const char *initial_cwd(const Config *config)
 
 static void estimate_terminal_grid(State *app, int *cols, int *rows)
 {
-    int menu_h = ScaleUIPx(34);
-    int tab_h = TabBarHeight();
-    int chrome_h = menu_h + tab_h;
+    int chrome_h = app_chrome_height(app);
     TerminalPaneMetrics metrics;
 
     if(cols == NULL || rows == NULL)
@@ -88,6 +88,7 @@ static void apply_profile_defaults_to_terminal(State *app,
 {
     if(app == NULL || terminal == NULL)
         return;
+    terminal_set_ambiguous_width(terminal, app->config.ambiguous_width_wide);
     terminal_profile_apply_new(&app->config, &app->palette, terminal);
 }
 
@@ -117,7 +118,7 @@ static void open_session_with_launch(State *app, const char *cwd,
                      initial_cwd(&app->config),
                  app->config.shell,
                  command != NULL ? command : app->config.command, cols, rows,
-                 app->config.scrollback_limit);
+                 config_effective_scrollback_limit(&app->config));
     if(title != NULL && title[0] != '\0')
         session_set_title(session, title);
     apply_profile_defaults_to_terminal(app, &session->terminal);
@@ -152,6 +153,43 @@ int open_launch_sessions(State *app)
         opened++;
     }
     return opened;
+}
+
+static int moved_index(int index, int from_index, int to_index)
+{
+    if(index < 0)
+        return index;
+    if(index == from_index)
+        return to_index;
+    if(from_index < to_index && index > from_index && index <= to_index)
+        return index - 1;
+    if(from_index > to_index && index >= to_index && index < from_index)
+        return index + 1;
+    return index;
+}
+
+void move_session(State *app, int from_index, int to_index)
+{
+    Session moved;
+    int i;
+
+    if(app == NULL || from_index < 0 || from_index >= app->session_count ||
+       to_index < 0 || to_index >= app->session_count ||
+       from_index == to_index)
+        return;
+
+    moved = app->sessions[from_index];
+    if(from_index < to_index) {
+        for(i = from_index; i < to_index; i++)
+            app->sessions[i] = app->sessions[i + 1];
+    } else {
+        for(i = from_index; i > to_index; i--)
+            app->sessions[i] = app->sessions[i - 1];
+    }
+    app->sessions[to_index] = moved;
+    app->active = moved_index(app->active, from_index, to_index);
+    app->rename_index = moved_index(app->rename_index, from_index, to_index);
+    app->selection.active = 0;
 }
 
 void close_session(State *app, int index)
@@ -216,7 +254,7 @@ int restore_sessions(State *app)
         session_init(&app->sessions[i]);
         session_open(&app->sessions[i], record->cwd, record->shell,
                      record->command, cols, rows,
-                     app->config.scrollback_limit);
+                     config_effective_scrollback_limit(&app->config));
         app->sessions[i].scroll_offset = max_int(0, record->scroll_offset);
         apply_profile_defaults_to_terminal(app, &app->sessions[i].terminal);
         if(record->title[0] != '\0')

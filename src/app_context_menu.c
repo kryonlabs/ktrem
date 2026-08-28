@@ -1,12 +1,15 @@
 #include "app_context_menu.h"
 
 #include "app_clipboard.h"
+#include "app_commands.h"
 #include "app_search.h"
 
 #include "kryon.h"
 
 enum {
     CONTEXT_COPY = 2001,
+    CONTEXT_NEW_TAB,
+    CONTEXT_CLOSE_TAB,
     CONTEXT_PASTE,
     CONTEXT_PASTE_PRIMARY,
     CONTEXT_FIND,
@@ -18,6 +21,9 @@ enum {
 void draw_context_menu(State *app, Session *session)
 {
     MenuItem items[] = {
+        {MenuCommand, "New Tab", "Ctrl+Shift+T", CONTEXT_NEW_TAB, 0, 0, NULL, 0},
+        {MenuCommand, "Close Tab", "Ctrl+Shift+W", CONTEXT_CLOSE_TAB, 0, 0, NULL, 0},
+        {MenuSeparator, NULL, NULL, 0, 0, 0, NULL, 0},
         {MenuCommand, "Copy", "Ctrl+Shift+C", CONTEXT_COPY, 0, 0, NULL, 0},
         {MenuCommand, "Paste", "Ctrl+Shift+V", CONTEXT_PASTE, 0, 0, NULL, 0},
         {MenuCommand, "Paste Primary", NULL, CONTEXT_PASTE_PRIMARY, 0, 0, NULL, 0},
@@ -31,8 +37,9 @@ void draw_context_menu(State *app, Session *session)
 
     if(app == NULL || session == NULL || !app->context_menu_open)
         return;
-    items[0].disabled = !app->selection.active;
-    items[2].disabled = !primary_selection_available();
+    items[1].disabled = app->session_count <= 1;
+    items[3].disabled = !app->selection.active;
+    items[5].disabled = !primary_selection_available();
     command = ContextMenu((ContextMenuProps){
         1300,
         app->viewport,
@@ -42,7 +49,13 @@ void draw_context_menu(State *app, Session *session)
         &app->context_menu_x,
         &app->context_menu_y
     });
-    if(command == CONTEXT_COPY) {
+    if(command == CONTEXT_NEW_TAB) {
+        app_execute_command(app, APP_COMMAND_NEW_TAB);
+        app->context_menu_open = 0;
+    } else if(command == CONTEXT_CLOSE_TAB) {
+        app_execute_command(app, APP_COMMAND_CLOSE_TAB);
+        app->context_menu_open = 0;
+    } else if(command == CONTEXT_COPY) {
         copy_selection(app);
         app->context_menu_open = 0;
     } else if(command == CONTEXT_PASTE) {

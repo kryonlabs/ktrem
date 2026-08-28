@@ -185,6 +185,20 @@ static int apply_config_value_arg(Config *config, const char *arg)
         "--terminal-cursor",
         "--terminal-selection-foreground",
         "--terminal-selection-background",
+        "--dynamic-title-mode",
+        "--backspace-binding",
+        "--delete-binding",
+        "--ambiguous-width",
+        "--allow-bold",
+        "--unlimited-scrollback",
+        "--auto-hide-mouse",
+        "--middle-click-closes-tab",
+        "--always-show-tabs",
+        "--disable-menu-mnemonics",
+        "--disable-menu-shortcut",
+        "--disable-help-shortcut",
+        "--background-opacity",
+        "--background-image",
         NULL
     };
     int i;
@@ -240,6 +254,40 @@ LaunchParseResult launch_options_parse(LaunchOptions *options, Config *config,
             return LAUNCH_PARSE_COLOR_TABLE;
         if(strcmp(arg, "--disable-server") == 0)
             continue;
+        if(strcmp(arg, "--unlimited-scrollback") == 0 ||
+           strcmp(arg, "--auto-hide-mouse") == 0 ||
+           strcmp(arg, "--middle-click-closes-tab") == 0 ||
+           strcmp(arg, "--always-show-tabs") == 0 ||
+           strcmp(arg, "--disable-menu-mnemonics") == 0 ||
+           strcmp(arg, "--disable-menu-shortcut") == 0 ||
+           strcmp(arg, "--disable-help-shortcut") == 0) {
+            config_apply_arg(config, arg + 2, "true");
+            continue;
+        }
+        if(strcmp(arg, "--no-unlimited-scrollback") == 0) {
+            config_apply_arg(config, "unlimited-scrollback", "false");
+            continue;
+        }
+        if(strcmp(arg, "--no-auto-hide-mouse") == 0) {
+            config_apply_arg(config, "auto-hide-mouse", "false");
+            continue;
+        }
+        if(strcmp(arg, "--no-middle-click-closes-tab") == 0) {
+            config_apply_arg(config, "middle-click-closes-tab", "false");
+            continue;
+        }
+        if(strcmp(arg, "--no-always-show-tabs") == 0) {
+            config_apply_arg(config, "always-show-tabs", "false");
+            continue;
+        }
+        if(strcmp(arg, "--enable-bold") == 0) {
+            config_apply_arg(config, "allow-bold", "true");
+            continue;
+        }
+        if(strcmp(arg, "--disable-bold") == 0) {
+            config_apply_arg(config, "allow-bold", "false");
+            continue;
+        }
         if(strcmp(arg, "--drop-down") == 0) {
             options->drop_down = 1;
             options->show_borders = 0;
@@ -384,6 +432,20 @@ LaunchParseResult launch_options_parse(LaunchOptions *options, Config *config,
             strcmp(arg, "--terminal-cursor") == 0 ||
             strcmp(arg, "--terminal-selection-foreground") == 0 ||
             strcmp(arg, "--terminal-selection-background") == 0 ||
+            strcmp(arg, "--dynamic-title-mode") == 0 ||
+            strcmp(arg, "--backspace-binding") == 0 ||
+            strcmp(arg, "--delete-binding") == 0 ||
+            strcmp(arg, "--ambiguous-width") == 0 ||
+            strcmp(arg, "--allow-bold") == 0 ||
+            strcmp(arg, "--unlimited-scrollback") == 0 ||
+            strcmp(arg, "--auto-hide-mouse") == 0 ||
+            strcmp(arg, "--middle-click-closes-tab") == 0 ||
+            strcmp(arg, "--always-show-tabs") == 0 ||
+            strcmp(arg, "--disable-menu-mnemonics") == 0 ||
+            strcmp(arg, "--disable-menu-shortcut") == 0 ||
+            strcmp(arg, "--disable-help-shortcut") == 0 ||
+            strcmp(arg, "--background-opacity") == 0 ||
+            strcmp(arg, "--background-image") == 0 ||
             strcmp(arg, "--default-display") == 0 ||
             strcmp(arg, "--display") == 0 ||
             strcmp(arg, "--role") == 0 ||
@@ -484,7 +546,15 @@ void launch_options_print_usage(void)
            "  --terminal-background #rrggbb|default\n"
            "  --terminal-cursor #rrggbb|default\n"
            "  --terminal-selection-foreground #rrggbb|default\n"
-           "  --terminal-selection-background #rrggbb|default\n");
+           "  --terminal-selection-background #rrggbb|default\n"
+           "  --dynamic-title-mode replace|prepend|append|ignore\n"
+           "  --backspace-binding ascii-delete|control-h\n"
+           "  --delete-binding escape-sequence|ascii-delete\n"
+           "  --ambiguous-width narrow|wide\n"
+           "  --allow-bold true|false, --enable-bold, --disable-bold\n"
+           "  --unlimited-scrollback, --auto-hide-mouse\n"
+           "  --middle-click-closes-tab, --always-show-tabs\n"
+           "  --background-opacity 0..100, --background-image PATH\n");
 }
 
 void launch_options_print_version(void)

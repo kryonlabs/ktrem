@@ -63,11 +63,13 @@ void draw_search_prompt(State *app)
         app->search_focused = 0;
         return;
     }
-    if(ctrl && shift && IsKeyPressed(KEY_G) && app->search_text[0] != '\0') {
+    if(ctrl && shift && IsLayoutKeyPressed('g') &&
+       app->search_text[0] != '\0') {
         find_scrollback_direction(app, 1);
         app->search_focused = 1;
     }
-    if(ctrl && shift && IsKeyPressed(KEY_B) && app->search_text[0] != '\0') {
+    if(ctrl && shift && IsLayoutKeyPressed('b') &&
+       app->search_text[0] != '\0') {
         find_scrollback_direction(app, -1);
         app->search_focused = 1;
     }
