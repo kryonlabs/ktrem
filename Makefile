@@ -7,6 +7,8 @@ PREFIX ?= $(HOME)/.local
 BINDIR ?= $(PREFIX)/bin
 RILL_APP_HOSTDIR ?= $(PREFIX)/lib/rill/apps
 INSTALL ?= install
+LN ?= ln
+COMPAT_BINS ?= kterm
 
 UNAME_S := $(shell uname -s 2>/dev/null)
 UNAME_M := $(shell uname -m 2>/dev/null)
@@ -215,6 +217,7 @@ install: $(APP) $(HOST_SO)
 	mkdir -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(RILL_APP_HOSTDIR)
 	$(INSTALL) -m 755 $(APP) $(DESTDIR)$(BINDIR)/ktrem
 	$(INSTALL) -m 755 $(HOST_SO) $(DESTDIR)$(RILL_APP_HOSTDIR)/ktrem-host.so
+	for bin in $(COMPAT_BINS); do $(LN) -sf ktrem $(DESTDIR)$(BINDIR)/$$bin; done
 
 clean:
 	rm -rf $(BUILD_ROOT)

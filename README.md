@@ -8,7 +8,12 @@ not in Kryon.
 make
 make run
 make test
+make install
 ```
+
+`make install` installs `ktrem`, the Rill host module, and a `kterm`
+compatibility command name under the selected `PREFIX` (`~/.local` by
+default).
 
 Release builds are covered by `.github/workflows/release.yml`: pull requests
 and pushes run the Linux build/test path, and published GitHub Releases upload
