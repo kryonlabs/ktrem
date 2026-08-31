@@ -6,6 +6,7 @@ PLAN9PORT_DIR ?= /mnt/storage/Projects/plan9port
 PREFIX ?= $(HOME)/.local
 BINDIR ?= $(PREFIX)/bin
 RILL_APP_HOSTDIR ?= $(PREFIX)/lib/rill/apps
+APPDIR ?= $(PREFIX)/share/applications
 INSTALL ?= install
 LN ?= ln
 COMPAT_BINS ?= kterm
@@ -214,10 +215,23 @@ benchmark-parser: $(PARSER_BENCH)
 	$(PARSER_BENCH)
 
 install: $(APP) $(HOST_SO)
-	mkdir -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(RILL_APP_HOSTDIR)
+	mkdir -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(RILL_APP_HOSTDIR) $(DESTDIR)$(APPDIR)
 	$(INSTALL) -m 755 $(APP) $(DESTDIR)$(BINDIR)/ktrem
 	$(INSTALL) -m 755 $(HOST_SO) $(DESTDIR)$(RILL_APP_HOSTDIR)/ktrem-host.so
 	for bin in $(COMPAT_BINS); do $(LN) -sf ktrem $(DESTDIR)$(BINDIR)/$$bin; done
+	{ \
+		printf '%s\n' '[Desktop Entry]'; \
+		printf '%s\n' 'Type=Application'; \
+		printf '%s\n' 'Name=ktrem'; \
+		printf '%s\n' 'Comment=Kryon terminal emulator'; \
+		printf '%s\n' 'Exec=$(BINDIR)/ktrem'; \
+		printf '%s\n' 'Icon=utilities-terminal'; \
+		printf '%s\n' 'Terminal=false'; \
+		printf '%s\n' 'Categories=System;TerminalEmulator;'; \
+		printf '%s\n' 'Keywords=terminal;shell;ktrem;kterm;'; \
+		printf '%s\n' 'StartupNotify=true'; \
+	} > $(DESTDIR)$(APPDIR)/ktrem.desktop
+	if command -v update-desktop-database >/dev/null 2>&1; then update-desktop-database $(DESTDIR)$(APPDIR); fi
 
 clean:
 	rm -rf $(BUILD_ROOT)
