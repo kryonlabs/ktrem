@@ -16,7 +16,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-static char test_clipboard[UI_CLIPBOARD_BUFFER_SIZE];
+static char test_clipboard[CLIPBOARD_BUFFER_SIZE];
 static Color test_theme_background;
 static Color test_theme_surface;
 static Color test_theme_text;
@@ -74,22 +74,6 @@ void SetThemeMode(ThemeMode mode)
     test_theme_dark = mode == THEME_MODE_DARK ? 1 : 0;
 }
 
-void SetThemeStyle(ThemeStyle style)
-{
-    (void)style;
-}
-
-ThemeStyle GetEffectiveThemeStyle(void)
-{
-    return THEME_STYLE_SYSTEM;
-}
-
-int GetDefaultThemeForThemeStyle(ThemeStyle style)
-{
-    (void)style;
-    return 0;
-}
-
 void SetCurrentTheme(int theme_id, int dark_mode)
 {
     (void)theme_id;
@@ -99,10 +83,6 @@ void SetCurrentTheme(int theme_id, int dark_mode)
 bool RefreshSystemTheme(void)
 {
     return true;
-}
-
-void ReloadThemes(void)
-{
 }
 
 bool GetEffectiveThemeDarkMode(void)
@@ -746,8 +726,7 @@ static int palette_defaults_follow_kryon_theme_tokens(void)
                           0, 0);
     SetThemeSource(THEME_SOURCE_SYSTEM);
     SetThemeMode(THEME_MODE_LIGHT);
-    SetThemeStyle(THEME_STYLE_SYSTEM);
-    SetCurrentTheme(GetDefaultThemeForThemeStyle(GetEffectiveThemeStyle()), 0);
+    SetCurrentTheme(0, 0);
     terminal_colors = GetTerminalPaneThemeColors();
     terminal_palette = GetTerminalPaneDefaultPalette();
     palette_default(&palette);
@@ -1311,9 +1290,9 @@ static int capture_clipboard_setter_query(void)
     }
     terminal.fd = fds[1];
     terminal.running = 1;
-    RequestUIClipboardBufferWrite(&terminal.clipboard, "pending");
-    SetUIClipboardBufferText(&terminal.clipboard, "shared");
-    if(UIClipboardBufferHasPendingWrite(&terminal.clipboard)) {
+    RequestClipboardBufferWrite(&terminal.clipboard, "pending");
+    SetClipboardBufferText(&terminal.clipboard, "shared");
+    if(ClipboardBufferHasPendingWrite(&terminal.clipboard)) {
         fprintf(stderr, "clipboard setter left pending flag set\n");
         terminal_close(&terminal);
         close(fds[0]);
@@ -3032,8 +3011,8 @@ int main(void)
        terminal.palette_overrides[2] != (COLOR_TRUE_RGB | 0x103050) ||
        strcmp(terminal.current_directory,
               "/home/wao/Projects/ktrem Test") != 0 ||
-       !UIClipboardBufferHasPendingWrite(&terminal.clipboard) ||
-       strcmp(GetUIClipboardBufferText(&terminal.clipboard), "hello") != 0) {
+       !ClipboardBufferHasPendingWrite(&terminal.clipboard) ||
+       strcmp(GetClipboardBufferText(&terminal.clipboard), "hello") != 0) {
         fprintf(stderr, "osc title/color failed\n");
         return 1;
     }
@@ -3595,7 +3574,7 @@ int main(void)
         return 1;
     if(!capture_osc_color_query())
         return 1;
-    SetUIPrimarySelectionTextValue("");
+    SetPrimarySelectionTextValue("");
     if(!capture_response_sequence("osc 52 clipboard query",
                                   "\x1b]52;c;aGVsbG8=\a\x1b]52;c;?\a",
                                   "\x1b]52;c;aGVsbG8=\a"))

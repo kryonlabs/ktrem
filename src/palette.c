@@ -83,10 +83,7 @@ void palette_apply_system_theme(Palette *palette)
     SetThemeSource(THEME_SOURCE_SYSTEM);
     SetThemeMode(THEME_MODE_SYSTEM);
     RefreshSystemTheme();
-    ReloadThemes();
-    SetThemeStyle(THEME_STYLE_SYSTEM);
-    SetCurrentTheme(GetDefaultThemeForThemeStyle(GetEffectiveThemeStyle()),
-                    GetEffectiveThemeDarkMode() ? 1 : 0);
+    SetCurrentTheme(0, GetEffectiveThemeDarkMode() ? 1 : 0);
 
     bg = GetThemeBackground();
     surface = GetThemeSurface();

@@ -127,6 +127,7 @@ ifeq ($(PLATFORM),linux)
   CFLAGS += -fPIC
 endif
 CPPFLAGS += -Isrc -I$(ENGINE_DIR)/include \
+	-I$(ENGINE_BUILD_DIR)/generated/src -I$(ENGINE_BUILD_DIR)/generated/include \
 	$(BACKEND_CFLAGS) $(SYSTEM_THEME_CFLAGS) \
 	-DKTREM_KRYON_FONT_PATH=\"$(abspath $(ENGINE_DIR))/fonts/noto/NotoSans-Regular.ttf\" \
 	-DHAS_LIBOQS=1 -I$(ENGINE_BUILD_DIR)/vendor/liboqs/include \

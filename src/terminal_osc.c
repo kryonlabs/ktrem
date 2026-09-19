@@ -329,6 +329,6 @@ void terminal_finish_osc(TerminalState *terminal)
         return;
     }
     if(code == 52)
-        (void)HandleUIClipboardOSC52(&terminal->clipboard, payload,
+        (void)HandleClipboardOSC52(&terminal->clipboard, payload,
                                      write_osc52_response, terminal);
 }

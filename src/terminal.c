@@ -30,7 +30,7 @@ void terminal_init(TerminalState *terminal)
     terminal->base_selection_fg = COLOR_DEFAULT;
     terminal->base_selection_bg = COLOR_DEFAULT;
     terminal->cursor_style = TERMINAL_CURSOR_DEFAULT;
-    InitUIClipboardBuffer(&terminal->clipboard, "");
+    InitClipboardBuffer(&terminal->clipboard, "");
     InitTerminalPaneDCSBuffer(&terminal->dcs, 0);
     terminal->current_hyperlink = 0;
     terminal->hyperlink_count = 0;

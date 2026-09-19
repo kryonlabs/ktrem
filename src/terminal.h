@@ -209,7 +209,7 @@ typedef struct TerminalState {
     int title_stack_count;
     int icon_title_stack_count;
     char current_directory[1024];
-    UIClipboardBuffer clipboard;
+    ClipboardBuffer clipboard;
     int bell_pending;
     char osc[512];
     int osc_len;
