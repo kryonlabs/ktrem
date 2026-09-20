@@ -146,7 +146,7 @@ static void draw_tabs(State *app, Rectangle bounds)
         app->active,
         ScaleUIPx(13),
         ScaleUIPx(72),
-        ScaleUIPx(152),
+        ScaleUIPx(280),
         &app->tab_scroll,
         1,
         &closed,
@@ -523,7 +523,7 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     draw_context_menu(app, session);
     if(app->about_visible &&
        MessageDialog((MessageDialogProps){
-           "ktrem",
+           "Terminal",
            "A Kryon terminal application.",
            "OK"
        }))

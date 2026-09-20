@@ -1,6 +1,7 @@
 #include "session.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -28,19 +29,31 @@ static void set_short_title(Session *session, const char *text,
         session->title, (int)sizeof(session->title), text, fallback);
 }
 
-static void set_default_title(Session *session)
+static const char *display_directory(const char *cwd)
 {
-    if(session == NULL)
-        return;
-    if(session->command[0] != '\0') {
-        set_short_title(session, session->command, "terminal");
-        return;
-    }
-    set_short_title(session, session->cwd, "terminal");
+    const char *home = getenv("HOME");
+    const char *slash;
+
+    if(cwd == NULL || cwd[0] == '\0')
+        return "~";
+    if(home != NULL && home[0] != '\0' && strcmp(cwd, home) == 0)
+        return "~";
+    if(home != NULL && home[0] != '\0' &&
+       strncmp(cwd, home, strlen(home)) == 0 &&
+       cwd[strlen(home)] == '/')
+        return cwd + strlen(home) + 1;
+    if(strcmp(cwd, "/") == 0)
+        return "/";
+    slash = strrchr(cwd, '/');
+    return slash != NULL && slash[1] != '\0' ? slash + 1 : cwd;
 }
 
 static void default_title_text(const Session *session, char *out, int out_size)
 {
+    const char *user;
+    const char *host;
+    char hostname[256] = {0};
+
     if(out == NULL || out_size <= 0)
         return;
     out[0] = '\0';
@@ -51,8 +64,60 @@ static void default_title_text(const Session *session, char *out, int out_size)
                                              "terminal");
         return;
     }
-    (void)FormatTerminalPaneSessionTitle(out, out_size, session->cwd,
-                                         "terminal");
+    user = getenv("USER");
+    if(user == NULL || user[0] == '\0')
+        user = getenv("user");
+    if(user == NULL || user[0] == '\0')
+        user = "user";
+    host = getenv("HOSTNAME");
+#ifdef KRYON_NATIVE_PLAN9
+    if(host == NULL || host[0] == '\0')
+        host = getenv("sysname");
+#else
+    if(host == NULL || host[0] == '\0') {
+        if(gethostname(hostname, sizeof(hostname) - 1) == 0)
+            host = hostname;
+    }
+#endif
+    if(host == NULL || host[0] == '\0')
+        host = "localhost";
+    snprintf(out, (size_t)out_size, "Terminal - %s@%s %s", user, host,
+             display_directory(session->cwd));
+}
+
+static void set_default_title(Session *session)
+{
+    if(session != NULL)
+        default_title_text(session, session->title,
+                           (int)sizeof(session->title));
+}
+
+static int set_shell_title(Session *session, const char *text)
+{
+    const char *at;
+    const char *colon;
+    const char *path;
+    const char *space;
+
+    if(session == NULL || text == NULL)
+        return 0;
+    at = strchr(text, '@');
+    if(at == NULL || at == text)
+        return 0;
+    colon = strchr(at + 1, ':');
+    if(colon == NULL || colon == at + 1)
+        return 0;
+    space = strchr(text, ' ');
+    if(space != NULL && space < colon)
+        return 0;
+    path = colon + 1;
+    while(*path == ' ')
+        path++;
+    if(*path == '\0')
+        return 0;
+    snprintf(session->title, sizeof(session->title), "Terminal - %.*s %s",
+             (int)(colon - text), text, display_directory(path));
+    return 1;
 }
 
 void session_init(Session *session)
@@ -161,7 +226,8 @@ void session_sync_terminal_metadata_with_mode(Session *session,
             break;
         case TERMINAL_PANE_TITLE_REPLACE:
         default:
-            set_short_title(session, session->terminal.title, "terminal");
+            if(!set_shell_title(session, session->terminal.title))
+                set_short_title(session, session->terminal.title, "terminal");
             break;
         }
     }

@@ -168,6 +168,18 @@ static int moved_index(int index, int from_index, int to_index)
     return index;
 }
 
+static void rebind_session_terminals(State *app)
+{
+#ifdef KRYON_NATIVE_PLAN9
+    int i;
+
+    for(i = 0; i < app->session_count; i++)
+        terminal_rebind(&app->sessions[i].terminal);
+#else
+    (void)app;
+#endif
+}
+
 void move_session(State *app, int from_index, int to_index)
 {
     Session moved;
@@ -187,12 +199,13 @@ void move_session(State *app, int from_index, int to_index)
             app->sessions[i] = app->sessions[i - 1];
     }
     app->sessions[to_index] = moved;
+    rebind_session_terminals(app);
     app->active = moved_index(app->active, from_index, to_index);
     app->rename_index = moved_index(app->rename_index, from_index, to_index);
     app->selection.active = 0;
 }
 
-void close_session(State *app, int index)
+static void close_session_internal(State *app, int index, int replace_last)
 {
     int i;
     int closing_active;
@@ -206,8 +219,13 @@ void close_session(State *app, int index)
     for(i = index; i < app->session_count - 1; i++)
         app->sessions[i] = app->sessions[i + 1];
     app->session_count--;
+    rebind_session_terminals(app);
     if(app->session_count <= 0) {
-        open_session(app, NULL);
+        app->active = -1;
+        if(replace_last)
+            open_session(app, NULL);
+        else
+            app->quit_requested = 1;
         return;
     }
     if(!closing_active && index < app->active)
@@ -220,6 +238,16 @@ void close_session(State *app, int index)
         terminal_send_focus(&app->sessions[app->active].terminal, 1);
     app->selection.active = 0;
     app->rename_index = -1;
+}
+
+void close_session(State *app, int index)
+{
+    close_session_internal(app, index, 1);
+}
+
+void close_exited_session(State *app, int index)
+{
+    close_session_internal(app, index, 0);
 }
 
 void save_sessions(State *app)

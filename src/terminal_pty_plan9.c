@@ -48,6 +48,21 @@ static Plan9TerminalSession *plan9_find_session(TerminalState *terminal)
     return nil;
 }
 
+void terminal_rebind(TerminalState *terminal)
+{
+    int i;
+
+    if(terminal == nil || terminal->pid <= 0)
+        return;
+    for(i = 0; i < PLAN9_SESSION_LIMIT; i++) {
+        if(!plan9_sessions[i].closed &&
+           plan9_sessions[i].child_pid == terminal->pid) {
+            plan9_sessions[i].terminal = terminal;
+            return;
+        }
+    }
+}
+
 static Plan9TerminalSession *plan9_alloc_session(TerminalState *terminal)
 {
     int i;

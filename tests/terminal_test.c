@@ -650,6 +650,11 @@ static int session_store_roundtrips_escaped_tabs(void)
         fprintf(stderr, "session store did not roundtrip escaped records\n");
         ok = 0;
     }
+    if(!session_store_save(sessions, 0, 0) ||
+       session_store_load(records, 2, &active) != 0) {
+        fprintf(stderr, "session store retained tabs after last exit\n");
+        ok = 0;
+    }
     {
         char path[1024];
         FILE *file;
@@ -2281,7 +2286,9 @@ static int osc_current_directory_updates_session_title(void)
     session_sync_terminal_metadata(&session);
     session_current_cwd(&session, cwd, sizeof(cwd));
     if(strcmp(cwd, "/home/wao/Projects/ktrem Test") != 0 ||
-       strcmp(session_title(&session), "ktrem Test") != 0) {
+       strstr(session_title(&session), "Terminal - ") == NULL ||
+       strstr(session_title(&session), "@") == NULL ||
+       strstr(session_title(&session), "ktrem Test") == NULL) {
         fprintf(stderr, "osc current directory sync failed\n");
         session_close(&session);
         return 0;
@@ -2299,8 +2306,8 @@ static int osc_current_directory_updates_session_title(void)
                   (int)strlen(
                       "\x1b]2;wao@omega:/mnt/storage/Projects/ktrem\a"));
     session_sync_terminal_metadata(&session);
-    if(strcmp(session_title(&session), "ktrem") != 0) {
-        fprintf(stderr, "path-like osc title was not shortened\n");
+    if(strcmp(session_title(&session), "Terminal - wao@omega ktrem") != 0) {
+        fprintf(stderr, "shell title did not preserve user and host\n");
         session_close(&session);
         return 0;
     }

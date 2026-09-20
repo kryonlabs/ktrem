@@ -1,4 +1,4 @@
-# ktrem
+# Terminal (`t9`)
 
 ktrem is a standalone terminal application using Kryon for windowing,
 rendering, input, and platform integration. The terminal emulator belongs here,
@@ -11,9 +11,9 @@ make test
 make install
 ```
 
-`make install` installs `ktrem`, the Rill host module, a desktop launcher, and
-a `kterm` compatibility command name under the selected `PREFIX` (`~/.local`
-by default).
+`make install` installs the `t9` command, the Rill host module, and a
+desktop launcher named Terminal. `ktrem` and `kterm` remain command aliases.
+The default `PREFIX` is `~/.local`.
 
 Release builds are covered by `.github/workflows/release.yml`: pull requests
 and pushes run the Linux build/test path, and published GitHub Releases upload
@@ -30,26 +30,26 @@ make ENGINE_DIR=/path/to/kryon
 Run options:
 
 ```sh
-ktrem --working-directory /path/to/project
-ktrem --default-working-directory /path/to/project
-ktrem --shell /bin/bash
-ktrem --command 'make test'
-ktrem --command='make test'
-ktrem -e 'make test'
-ktrem -x make test
-ktrem --title 'Build'
-ktrem --command 'make test' --tab --title 'Logs' --command 'tail -f build.log'
-ktrem --drop-down --title 'System' --command htop
-ktrem --geometry 120x40
-ktrem --fullscreen
-ktrem --maximize
-ktrem --hold
-ktrem --font-size 18
-ktrem --scrollback 10000
-ktrem --cursor-style bar
-ktrem --terminal-font /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
-ktrem --terminal-foreground '#f2f2f2' --terminal-background '#101010' --terminal-cursor '#f2f2f2'
-ktrem --terminal-selection-foreground '#101010' --terminal-selection-background '#5a8fd8'
+t9 --working-directory /path/to/project
+t9 --default-working-directory /path/to/project
+t9 --shell /bin/bash
+t9 --command 'make test'
+t9 --command='make test'
+t9 -e 'make test'
+t9 -x make test
+t9 --title 'Build'
+t9 --command 'make test' --tab --title 'Logs' --command 'tail -f build.log'
+t9 --drop-down --title 'System' --command htop
+t9 --geometry 120x40
+t9 --fullscreen
+t9 --maximize
+t9 --hold
+t9 --font-size 18
+t9 --scrollback 10000
+t9 --cursor-style bar
+t9 --terminal-font /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+t9 --terminal-foreground '#f2f2f2' --terminal-background '#101010' --terminal-cursor '#f2f2f2'
+t9 --terminal-selection-foreground '#101010' --terminal-selection-background '#5a8fd8'
 ```
 
 ktrem accepts common xfce4-terminal launch aliases:

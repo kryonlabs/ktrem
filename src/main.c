@@ -273,9 +273,9 @@ static void sync_window_title(State *app)
         return;
     session = active_session(app);
     if(session != NULL && session_title(session)[0] != '\0')
-        snprintf(title, sizeof(title), "%s - ktrem", session_title(session));
+        snprintf(title, sizeof(title), "%s", session_title(session));
     else
-        snprintf(title, sizeof(title), "ktrem");
+        snprintf(title, sizeof(title), "Terminal");
     if(strcmp(app->window_title, title) != 0) {
         SetWindowTitle(title);
         snprintf(app->window_title, sizeof(app->window_title), "%s", title);
@@ -599,21 +599,21 @@ int main(int argc, char **argv)
         return 0;
     if(!native_graphics_namespace_ready()) {
         fprintf(stderr,
-                "ktrem: no Plan 9 graphics namespace; open ktrem from Rill\n");
+                "t9: no Plan 9 graphics namespace; open Terminal from Rill\n");
         return 1;
     }
 #endif
     SetTraceLogLevel(LOG_WARNING);
     set_launch_window_flags(&app.launch);
     InitWindow(initial_window_width(&app.launch),
-               initial_window_height(&app.launch), "ktrem");
+               initial_window_height(&app.launch), "Terminal");
     SetExitKey(KEY_NULL);
     if(!IsWindowReady() || GetFontDefault().texture.id == 0) {
-        fprintf(stderr, "ktrem: graphics backend failed to initialize\n");
+        fprintf(stderr, "t9: graphics backend failed to initialize\n");
         return 1;
     }
     apply_launch_window_state(&app.launch);
-    snprintf(app.window_title, sizeof(app.window_title), "ktrem");
+    snprintf(app.window_title, sizeof(app.window_title), "Terminal");
     InitUI(frame_width(), frame_height(), 1.0f);
     app.window_focused = IsWindowFocused() ? 1 : 0;
     load_kryon_font(&app.config);
@@ -636,23 +636,35 @@ int main(int argc, char **argv)
 
     while(!WindowShouldClose() && !app.quit_requested) {
         Session *session = active_session(&app);
+        int poll_index;
+        int bytes = 0;
 
         if(session == NULL && app.session_count == 0) {
             open_session(&app, NULL);
             session = active_session(&app);
         }
-        if(session != NULL) {
-            int bytes;
-
+        if(session != NULL)
             sync_host_clipboard_to_terminal(session);
-            bytes = drain_terminal_output(session, burst_ms);
-            if(bytes > 0)
-                fast_poll_until = GetTime() + 0.25;
-            SetTargetFPS(GetTime() < fast_poll_until ? busy_fps : idle_fps);
+        for(poll_index = 0; poll_index < app.session_count;) {
+            Session *tab = &app.sessions[poll_index];
+
+            bytes += drain_terminal_output(
+                tab, poll_index == app.active ? burst_ms : 0);
+            session_sync_terminal_metadata_with_mode(
+                tab, app.config.dynamic_title_mode);
+            if(!tab->terminal.running && !app.launch.hold) {
+                close_exited_session(&app, poll_index);
+                continue;
+            }
+            poll_index++;
+        }
+        session = active_session(&app);
+        if(bytes > 0)
+            fast_poll_until = GetTime() + 0.25;
+        SetTargetFPS(GetTime() < fast_poll_until ? busy_fps : idle_fps);
+        if(session != NULL) {
             if(terminal_consume_bell(&session->terminal))
                 app.bell_until = GetTime() + 0.18;
-            session_sync_terminal_metadata_with_mode(
-                session, app.config.dynamic_title_mode);
         }
         sync_window_title(&app);
         if(session != NULL) {

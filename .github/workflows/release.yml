@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out ktrem
+      - name: Check out t9
         uses: actions/checkout@v4
         with:
           path: ${{ env.KTREM_DIR }}
@@ -66,13 +66,13 @@ jobs:
         working-directory: ${{ env.KRYON_CHECKOUT_DIR }}
         run: make all
 
-      - name: Test ktrem
+      - name: Test t9
         working-directory: ${{ env.KTREM_DIR }}
         env:
           ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_CHECKOUT_DIR }}
         run: make ENGINE_DIR="${ENGINE_DIR}" test
 
-      - name: Build ktrem
+      - name: Build t9
         working-directory: ${{ env.KTREM_DIR }}
         env:
           ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_CHECKOUT_DIR }}
@@ -89,9 +89,11 @@ jobs:
             [0-9]*) ;;
             *) deb_version="0.0.0+${deb_version}" ;;
           esac
-          package="ktrem-linux-x86_64-${version}"
+          package="t9-linux-x86_64-${version}"
           mkdir -p "dist/${package}/bin"
-          cp build/linux-x86_64/bin/ktrem "dist/${package}/bin/ktrem"
+          cp build/linux-x86_64/bin/t9 "dist/${package}/bin/t9"
+          ln -s t9 "dist/${package}/bin/ktrem"
+          ln -s t9 "dist/${package}/bin/kterm"
           cp build/linux-x86_64/lib/ktrem-host.so "dist/${package}/bin/ktrem-host.so"
           cp README.md "dist/${package}/README.md"
           cp docs/REMAINING_FEATURE_PLAN.md \
@@ -102,32 +104,34 @@ jobs:
           fi
           tar -C dist -czf "dist/${package}.tar.gz" "${package}"
 
-          deb_root="dist/deb/ktrem_${deb_version}_amd64"
+          deb_root="dist/deb/t9_${deb_version}_amd64"
           mkdir -p "${deb_root}/DEBIAN" \
             "${deb_root}/usr/bin" \
             "${deb_root}/usr/lib/rill/apps" \
             "${deb_root}/usr/share/applications" \
-            "${deb_root}/usr/share/doc/ktrem" \
+            "${deb_root}/usr/share/doc/t9" \
             "${deb_root}/usr/share/icons/hicolor/scalable/apps"
-          cp build/linux-x86_64/bin/ktrem "${deb_root}/usr/bin/ktrem"
+          cp build/linux-x86_64/bin/t9 "${deb_root}/usr/bin/t9"
+          ln -s t9 "${deb_root}/usr/bin/ktrem"
+          ln -s t9 "${deb_root}/usr/bin/kterm"
           cp build/linux-x86_64/lib/ktrem-host.so \
             "${deb_root}/usr/lib/rill/apps/ktrem-host.so"
-          cp README.md "${deb_root}/usr/share/doc/ktrem/README.md"
+          cp README.md "${deb_root}/usr/share/doc/t9/README.md"
           cp docs/site/favicon.svg \
-            "${deb_root}/usr/share/icons/hicolor/scalable/apps/ktrem.svg"
-          cat > "${deb_root}/usr/share/applications/ktrem.desktop" <<'EOF'
+            "${deb_root}/usr/share/icons/hicolor/scalable/apps/t9.svg"
+          cat > "${deb_root}/usr/share/applications/t9.desktop" <<'EOF'
           [Desktop Entry]
           Type=Application
-          Name=ktrem
+          Name=Terminal
           Comment=Kryon terminal emulator
-          Exec=ktrem
-          Icon=ktrem
+          Exec=t9
+          Icon=t9
           Terminal=false
           Categories=System;TerminalEmulator;
           Keywords=shell;prompt;command;terminal;
           EOF
           cat > "${deb_root}/DEBIAN/control" <<EOF
-          Package: ktrem
+          Package: t9
           Version: ${deb_version}
           Section: x11
           Priority: optional
@@ -135,49 +139,51 @@ jobs:
           Maintainer: Kryon Labs <noreply@kryonlabs.com>
           Depends: libc6, libssl3, libsdl2-2.0-0, libgtk-3-0, zlib1g
           Description: Kryon terminal emulator
-           ktrem is a standalone terminal application using Kryon for windowing,
+           t9 is a standalone terminal application using Kryon for windowing,
            rendering, input, and platform integration.
           EOF
           dpkg-deb --build --root-owner-group "${deb_root}" \
-            "dist/ktrem_${deb_version}_amd64.deb"
+            "dist/t9_${deb_version}_amd64.deb"
 
           appdir="dist/AppDir"
           mkdir -p "${appdir}/usr/bin" \
             "${appdir}/usr/lib/rill/apps" \
             "${appdir}/usr/share/applications" \
             "${appdir}/usr/share/icons/hicolor/scalable/apps"
-          cp build/linux-x86_64/bin/ktrem "${appdir}/usr/bin/ktrem"
+          cp build/linux-x86_64/bin/t9 "${appdir}/usr/bin/t9"
+          ln -s t9 "${appdir}/usr/bin/ktrem"
+          ln -s t9 "${appdir}/usr/bin/kterm"
           cp build/linux-x86_64/lib/ktrem-host.so \
             "${appdir}/usr/lib/rill/apps/ktrem-host.so"
           cp docs/site/favicon.svg \
-            "${appdir}/usr/share/icons/hicolor/scalable/apps/ktrem.svg"
-          cp "${deb_root}/usr/share/applications/ktrem.desktop" \
-            "${appdir}/usr/share/applications/ktrem.desktop"
-          cp "${appdir}/usr/share/applications/ktrem.desktop" \
-            "${appdir}/ktrem.desktop"
-          ln -s usr/share/icons/hicolor/scalable/apps/ktrem.svg \
-            "${appdir}/ktrem.svg"
+            "${appdir}/usr/share/icons/hicolor/scalable/apps/t9.svg"
+          cp "${deb_root}/usr/share/applications/t9.desktop" \
+            "${appdir}/usr/share/applications/t9.desktop"
+          cp "${appdir}/usr/share/applications/t9.desktop" \
+            "${appdir}/t9.desktop"
+          ln -s usr/share/icons/hicolor/scalable/apps/t9.svg \
+            "${appdir}/t9.svg"
           cat > "${appdir}/AppRun" <<'EOF'
           #!/bin/sh
           HERE="$(dirname "$(readlink -f "$0")")"
           export PATH="${HERE}/usr/bin:${PATH}"
-          exec "${HERE}/usr/bin/ktrem" "$@"
+          exec "${HERE}/usr/bin/t9" "$@"
           EOF
           chmod +x "${appdir}/AppRun"
           curl -fL -o /tmp/appimagetool \
             https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x /tmp/appimagetool
           ARCH=x86_64 /tmp/appimagetool --appimage-extract-and-run \
-            "${appdir}" "dist/ktrem-x86_64-${version}.AppImage"
+            "${appdir}" "dist/t9-x86_64-${version}.AppImage"
 
           sha256sum "dist/${package}.tar.gz" \
-            "dist/ktrem_${deb_version}_amd64.deb" \
-            "dist/ktrem-x86_64-${version}.AppImage" > "dist/SHA256SUMS"
+            "dist/t9_${deb_version}_amd64.deb" \
+            "dist/t9-x86_64-${version}.AppImage" > "dist/SHA256SUMS"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ktrem-linux-x86_64
+          name: t9-linux-x86_64
           path: |
             ${{ env.KTREM_DIR }}/dist/*.tar.gz
             ${{ env.KTREM_DIR }}/dist/*.deb

@@ -186,7 +186,7 @@ ktrem_state_init(KtremHost *host)
     launch_options_defaults(&app->launch);
     config_load(&app->config);
     app->config.command[0] = '\0';
-    snprintf(app->window_title, sizeof(app->window_title), "ktrem");
+    snprintf(app->window_title, sizeof(app->window_title), "Terminal");
     app->window_focused = 0;
     load_kryon_font(&app->config);
     refresh_app_theme(app);
@@ -282,20 +282,35 @@ ktrem_draw(void *userdata, Rectangle viewport)
     if(!host->initialized)
         ktrem_state_init(host);
     app = &host->app;
-    if(app->session_count == 0)
+    if(app->session_count == 0 && !app->quit_requested)
         open_session(app, NULL);
     session = active_session(app);
-    if(session != NULL) {
-        int bytes;
-
+    if(session != NULL)
         sync_host_clipboard_to_terminal(session);
-        bytes = drain_terminal_output(session, host->burst_ms);
+    {
+        int index;
+        int bytes = 0;
+
+        for(index = 0; index < app->session_count;) {
+            Session *tab = &app->sessions[index];
+
+            bytes += drain_terminal_output(
+                tab, index == app->active ? host->burst_ms : 0);
+            session_sync_terminal_metadata_with_mode(
+                tab, app->config.dynamic_title_mode);
+            if(!tab->terminal.running && !app->launch.hold) {
+                close_exited_session(app, index);
+                continue;
+            }
+            index++;
+        }
         if(bytes > 0)
             host->fast_poll_until = GetTime() + 0.25;
+    }
+    session = active_session(app);
+    if(session != NULL) {
         if(terminal_consume_bell(&session->terminal))
             app->bell_until = GetTime() + 0.18;
-        session_sync_terminal_metadata_with_mode(
-            session, app->config.dynamic_title_mode);
         flush_terminal_clipboard_to_host(session);
     }
     if(GetTime() >= app->next_theme_refresh) {
@@ -332,7 +347,7 @@ CreateAppHost(int abi_version, const char *project_path)
         return NULL;
     host->screen.id = "terminal";
     host->screen.group = "Applications";
-    host->screen.title = "ktrem";
+    host->screen.title = "Terminal";
     host->host.userdata = host;
     host->host.screen_count = ktrem_screen_count;
     host->host.screen = ktrem_screen;

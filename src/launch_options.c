@@ -529,7 +529,7 @@ LaunchParseResult launch_options_parse(LaunchOptions *options, Config *config,
 
 void launch_options_print_usage(void)
 {
-    printf("usage: ktrem [options]\n"
+    printf("usage: t9 [options]\n"
            "  --working-directory PATH, --default-working-directory PATH\n"
            "  --shell PATH\n"
            "  --command CMD, --command=CMD, -e CMD\n"
@@ -559,7 +559,7 @@ void launch_options_print_usage(void)
 
 void launch_options_print_version(void)
 {
-    printf("ktrem 0.1\n");
+    printf("t9 0.1\n");
 }
 
 void launch_options_print_color_table(void)

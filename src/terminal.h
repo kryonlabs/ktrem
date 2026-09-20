@@ -248,6 +248,9 @@ void terminal_resize(TerminalState *terminal, int cols, int rows);
 void terminal_set_scrollback_limit(TerminalState *terminal, int rows);
 void terminal_set_ambiguous_width(TerminalState *terminal, int wide);
 void terminal_close(TerminalState *terminal);
+#ifdef KRYON_NATIVE_PLAN9
+void terminal_rebind(TerminalState *terminal);
+#endif
 const Cell *terminal_cell(const TerminalState *terminal, int col, int row);
 const Cell *terminal_visible_cell(const TerminalState *terminal, int col,
                                   int visible_row);

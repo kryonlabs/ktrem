@@ -72,7 +72,7 @@ int session_store_save(const Session *sessions, int session_count, int active)
     FILE *file;
     int i;
 
-    if(sessions == NULL || session_count <= 0 ||
+    if(sessions == NULL || session_count < 0 ||
        !session_store_state_path(path, sizeof(path)))
         return 0;
     ensure_state_dir();
