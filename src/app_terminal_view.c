@@ -140,21 +140,20 @@ static void draw_tabs(State *app, Rectangle bounds)
     }
     count = app->session_count;
     clicked = TabBar((TabBarProps){
-        bounds,
-        tabs,
-        count,
-        app->active,
-        ScaleUIPx(13),
-        ScaleUIPx(72),
-        ScaleUIPx(280),
-        &app->tab_scroll,
-        1,
-        &closed,
-        &double_clicked,
-        &reordered_from,
-        &reordered_to,
-        &selected_bounds,
-        &middle_clicked
+        .bounds = bounds,
+        .tabs = tabs,
+        .count = count,
+        .selected_index = app->active,
+        .min_tab_width = Scale(72),
+        .max_tab_width = Scale(280),
+        .scroll_offset = &app->tab_scroll,
+        .focus_selected = true,
+        .closed_index = &closed,
+        .double_clicked_index = &double_clicked,
+        .reordered_from_index = &reordered_from,
+        .reordered_to_index = &reordered_to,
+        .selected_tab_bounds = &selected_bounds,
+        .middle_clicked_index = &middle_clicked
     });
     if(reordered_from >= 0 && reordered_from < app->session_count &&
        reordered_to >= 0 && reordered_to < app->session_count) {
@@ -312,11 +311,14 @@ static void draw_line_cells(State *app, const TerminalState *terminal,
         len = cell_text(cell, text, sizeof(text));
         if(len <= 0)
             continue;
-        Text(text, (int)app->viewport.x + col * app->cell_w, y,
-             app->config.font_size, fg);
+        DrawTextEx(GetTextFont(), text,
+                   (Vector2){app->viewport.x + col * app->cell_w, (float)y},
+                   (float)app->config.font_size, 0.0f, fg);
         if(app->config.allow_bold && (cell->style & STYLE_BOLD) != 0)
-            Text(text, (int)app->viewport.x + col * app->cell_w + 1, y,
-                 app->config.font_size, fg);
+            DrawTextEx(GetTextFont(), text,
+                       (Vector2){app->viewport.x + col * app->cell_w + 1,
+                                 (float)y},
+                       (float)app->config.font_size, 0.0f, fg);
         if(linked && !selected)
             underline = theme_colors.link;
         if((cell->style & STYLE_UNDERLINE) != 0 || linked)
@@ -417,14 +419,14 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     int max_scroll;
 
     seed_theme_defaults_to_terminal(app, terminal);
-    UseUIFont("ktrem-terminal");
+    UseTextFont("t9-terminal");
     metrics = MeasureTerminalPaneContent(
         TerminalPaneContentBounds(bounds, chrome_h, 0), app->config.font_size);
     app->cell_w = metrics.cell_width;
     app->line_h = metrics.line_height;
     app->viewport = metrics.content;
     app->visible_rows = metrics.rows;
-    UseUIFont("ktrem-ui");
+    UseTextFont("t9-ui");
     terminal_resize(terminal, metrics.cols, metrics.rows);
 
     total_rows = terminal_visible_line_count(terminal);
@@ -452,7 +454,7 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
     BeginScissorMode((int)app->viewport.x, (int)app->viewport.y,
                      (int)app->viewport.width, (int)app->viewport.height);
     draw_sixel_images(app, terminal, view_colors);
-    UseUIFont("ktrem-terminal");
+    UseTextFont("t9-terminal");
     for(row = 0; row < app->visible_rows; row++) {
         int visible_row = app->first_visible_row + row;
         int y = (int)app->viewport.y + row * app->line_h;
@@ -489,12 +491,14 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
                 DrawRectangle(x, y, app->cell_w, app->line_h,
                               view_colors.cursor);
                 if(cell != NULL && cell_text(cell, text, sizeof(text)) > 0)
-                    Text(text, x, y, app->config.font_size,
-                         view_colors.background);
+                    DrawTextEx(GetTextFont(), text,
+                               (Vector2){(float)x, (float)y},
+                               (float)app->config.font_size, 0.0f,
+                               view_colors.background);
             }
         }
     }
-    UseUIFont("ktrem-ui");
+    UseTextFont("t9-ui");
     EndScissorMode();
 
     if(app->bell_until > GetTime()) {
@@ -516,28 +520,36 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
         DrawTerminalPaneScrollIndicator((TerminalPaneScrollIndicator){
             app->viewport,
             session->scroll_offset,
-            ScaleUIPx(13),
+            Scale(13),
             theme_colors
         });
     }
     draw_context_menu(app, session);
-    if(app->about_visible &&
-       MessageDialog((MessageDialogProps){
-           "Terminal",
-           "A Kryon terminal application.",
-           "OK"
-       }))
-        app->about_visible = 0;
+    if(app->about_visible) {
+        static const ModalAction actions[] = {{.label = "OK"}};
+
+        if(Modal((ModalProps){
+               .title = "Terminal",
+               .message = "A Kryon terminal application.",
+               .actions = actions,
+               .action_count = 1
+           }) != 0)
+            app->about_visible = 0;
+    }
     draw_search_prompt(app);
     if(app->profile_prompt != PROFILE_PROMPT_NONE) {
-        int result = PromptDialog((PromptDialogProps){
-            profile_prompt_title(app->profile_prompt),
-            app->profile_text,
-            (int)sizeof(app->profile_text),
-            &app->profile_cursor,
-            &app->profile_focused,
-            "Cancel",
-            "Save"
+        static const ModalAction actions[] = {
+            {.label = "Cancel"},
+            {.label = "Save"}
+        };
+        int result = Modal((ModalProps){
+            .title = profile_prompt_title(app->profile_prompt),
+            .actions = actions,
+            .action_count = 2,
+            .text = app->profile_text,
+            .text_size = (int)sizeof(app->profile_text),
+            .cursor_position = &app->profile_cursor,
+            .focused = &app->profile_focused
         });
 
         if(result == 1) {
@@ -550,16 +562,20 @@ void draw_terminal_view(State *app, Session *session, Rectangle bounds)
         }
     }
     if(app->rename_index >= 0 && app->rename_index < app->session_count) {
-        int result = TextPopover((TextPopoverProps){
-            app->rename_anchor,
-            "Title:",
-            app->rename_text,
-            (int)sizeof(app->rename_text),
-            &app->rename_cursor,
-            &app->rename_focused,
-            9301,
-            300,
-            (int)sizeof(app->rename_text) - 1
+        static const ModalAction actions[] = {
+            {.label = "Cancel"},
+            {.label = "Rename"}
+        };
+        int result = Modal((ModalProps){
+            .title = "Title",
+            .actions = actions,
+            .action_count = 2,
+            .text = app->rename_text,
+            .text_size = (int)sizeof(app->rename_text),
+            .cursor_position = &app->rename_cursor,
+            .focused = &app->rename_focused,
+            .focus_id = 9301,
+            .max_width = 300
         });
 
         if(result == 1) {
@@ -585,7 +601,7 @@ void draw_starting_frame(State *app)
     Rectangle viewport = TerminalPaneContentBounds(bounds, menu_h + tab_h, 0);
     TerminalPaneColors theme_colors = terminal_theme_tokens();
 
-    UseUIFont("ktrem-ui");
+    UseTextFont("t9-ui");
     DrawRectangleRec(bounds, opaque_color(app->palette.background));
     if(menu_h > 0) {
         draw_app_menu_bar(app, (Rectangle){bounds.x, bounds.y, bounds.width,
@@ -599,6 +615,11 @@ void draw_starting_frame(State *app)
     DrawRectangleRec(viewport,
                      alpha_color(theme_colors.background,
                                  app->config.background_opacity));
-    Text("Starting terminal...", (int)viewport.x + 10,
-         (int)viewport.y + 10, app->config.font_size, theme_colors.text);
+    Text((TextProps){
+        .bounds = {viewport.x + 10, viewport.y + 10,
+                   viewport.width - 20, (float)Scale(24)},
+        .text = "Starting terminal...",
+        .font = app->config.font_size,
+        .wrap = TextWrapNone
+    });
 }

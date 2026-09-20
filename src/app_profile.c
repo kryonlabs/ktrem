@@ -77,7 +77,7 @@ void apply_profile_prompt(State *app)
         return;
     if(TerminalPaneProfilePromptAffectsFont(app->profile_prompt) &&
        app->config.terminal_font[0] != '\0')
-        RegisterUIFontFileSource("ktrem-terminal",
+        RegisterTextFontFileSource("t9-terminal",
                                  app->config.terminal_font, NULL, 0);
     if(TerminalPaneProfilePromptAffectsScrollback(app->profile_prompt)) {
         for(i = 0; i < app->session_count; i++)

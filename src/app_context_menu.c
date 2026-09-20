@@ -40,15 +40,16 @@ void draw_context_menu(State *app, Session *session)
     items[1].disabled = app->session_count <= 1;
     items[3].disabled = !app->selection.active;
     items[5].disabled = !primary_selection_available();
-    command = ContextMenu((ContextMenuProps){
-        1300,
-        app->viewport,
-        items,
-        (int)(sizeof(items) / sizeof(items[0])),
-        &app->context_menu_open,
-        &app->context_menu_x,
-        &app->context_menu_y
-    });
+    command = Menu((MenuProps){
+        .id = 1300,
+        .mode = MenuModeContext,
+        .bounds = app->viewport,
+        .items = items,
+        .item_count = (int)(sizeof(items) / sizeof(items[0])),
+        .open = &app->context_menu_open,
+        .x = &app->context_menu_x,
+        .y = &app->context_menu_y
+    }).activated_id;
     if(command == CONTEXT_NEW_TAB) {
         app_execute_command(app, APP_COMMAND_NEW_TAB);
         app->context_menu_open = 0;

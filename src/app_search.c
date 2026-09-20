@@ -73,15 +73,22 @@ void draw_search_prompt(State *app)
         find_scrollback_direction(app, -1);
         app->search_focused = 1;
     }
-    result = PromptDialog((PromptDialogProps){
-        "Find",
-        app->search_text,
-        (int)sizeof(app->search_text),
-        &app->search_cursor,
-        &app->search_focused,
-        "Cancel",
-        "Find"
-    });
+    {
+        static const ModalAction actions[] = {
+            {.label = "Cancel"},
+            {.label = "Find"}
+        };
+
+        result = Modal((ModalProps){
+            .title = "Find",
+            .actions = actions,
+            .action_count = 2,
+            .text = app->search_text,
+            .text_size = (int)sizeof(app->search_text),
+            .cursor_position = &app->search_cursor,
+            .focused = &app->search_focused
+        });
+    }
 
     if(result == 1) {
         app->search_visible = 0;

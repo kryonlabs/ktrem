@@ -31,12 +31,12 @@ typedef struct State {
     int about_visible;
     int rename_index;
     int rename_cursor;
-    int rename_focused;
+    bool rename_focused;
     Rectangle rename_anchor;
     char rename_text[128];
     int search_visible;
     int search_cursor;
-    int search_focused;
+    bool search_focused;
     char search_text[128];
     int mouse_report_col;
     int mouse_report_row;
@@ -59,7 +59,7 @@ typedef struct State {
     int last_mouse_y;
     int profile_prompt;
     int profile_cursor;
-    int profile_focused;
+    bool profile_focused;
     char profile_text[1024];
     char window_title[160];
     Texture2D background_texture;

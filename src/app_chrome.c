@@ -4,7 +4,7 @@
 
 int app_menu_bar_height(const State *app)
 {
-    return app != NULL && app->launch.show_menubar ? ScaleUIPx(34) : 0;
+    return app != NULL && app->launch.show_menubar ? Scale(34) : 0;
 }
 
 int app_tab_bar_visible(const State *app)

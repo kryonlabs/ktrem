@@ -165,7 +165,7 @@ static int native_request_rill_terminal(void)
     file = fopen(path, "a");
     if(file == NULL)
         return 0;
-    fprintf(file, "open kterm\n");
+    fprintf(file, "open t9\n");
     fclose(file);
     return 1;
 }
@@ -255,12 +255,12 @@ static void register_terminal_fallback(
             continue;
         if(tried_count < (int)(sizeof(tried) / sizeof(tried[0])))
             tried[tried_count++] = path;
-        if(RegisterUIFontFileSource(name, path, codepoints, codepoint_count))
+        if(RegisterTextFontFileSource(name, path, codepoints, codepoint_count))
             return;
     }
     if(fontconfig_match_charset(match_codepoint, matched, sizeof(matched)) &&
        !path_in_list(tried, tried_count, matched))
-        (void)RegisterUIFontFileSource(name, matched, codepoints,
+        (void)RegisterTextFontFileSource(name, matched, codepoints,
                                        codepoint_count);
 }
 
@@ -517,36 +517,36 @@ static void load_kryon_font(const Config *config)
     int ui_loaded = 0;
 
     for(i = 0; ui_paths[i] != NULL; i++) {
-        if(RegisterUIFontFileSource("ktrem-ui", ui_paths[i], NULL, 0) &&
-           UseUIFont("ktrem-ui")) {
+        if(RegisterTextFontFileSource("t9-ui", ui_paths[i], NULL, 0) &&
+           UseTextFont("t9-ui")) {
             ui_loaded = 1;
             break;
         }
     }
     if(!ui_loaded)
-        EnsureUIDefaultFont();
+        EnsureDefaultFont();
     if(config != NULL && config->terminal_font[0] != '\0' &&
-       RegisterUIFontFileSource("ktrem-terminal", config->terminal_font,
+       RegisterTextFontFileSource("t9-terminal", config->terminal_font,
                                 codepoints, codepoint_count))
         goto fallbacks;
     for(i = 0; terminal_paths[i] != NULL; i++) {
-        if(RegisterUIFontFileSource("ktrem-terminal", terminal_paths[i],
+        if(RegisterTextFontFileSource("t9-terminal", terminal_paths[i],
                                     codepoints, codepoint_count))
             break;
     }
 fallbacks:
-    register_terminal_fallback("ktrem-terminal-cjk", cjk_paths,
+    register_terminal_fallback("t9-terminal-cjk", cjk_paths,
                                (int)(sizeof(cjk_paths) / sizeof(cjk_paths[0])),
                                0x6e2c, cjk_codepoints, cjk_codepoint_count);
     register_terminal_fallback(
-        "ktrem-terminal-symbols", symbol_paths,
+        "t9-terminal-symbols", symbol_paths,
         (int)(sizeof(symbol_paths) / sizeof(symbol_paths[0])), 0x2800,
         codepoints, codepoint_count);
     register_terminal_fallback(
-        "ktrem-terminal-emoji", emoji_paths,
+        "t9-terminal-emoji", emoji_paths,
         (int)(sizeof(emoji_paths) / sizeof(emoji_paths[0])), 0x1f600,
         codepoints, codepoint_count);
-    (void)UseUIFont("ktrem-terminal");
+    (void)UseTextFont("t9-terminal");
     free(cjk_codepoints);
     free(codepoints);
 }
@@ -614,7 +614,7 @@ int main(int argc, char **argv)
     }
     apply_launch_window_state(&app.launch);
     snprintf(app.window_title, sizeof(app.window_title), "Terminal");
-    InitUI(frame_width(), frame_height(), 1.0f);
+    InitInterface(frame_width(), frame_height(), 1.0f);
     app.window_focused = IsWindowFocused() ? 1 : 0;
     load_kryon_font(&app.config);
     refresh_app_theme(&app);
@@ -629,9 +629,9 @@ int main(int argc, char **argv)
         restore_sessions(&app);
     BeginDrawing();
     ClearBackground(app.palette.background);
-    BeginUIFrame(frame_width(), frame_height(), 1.0f);
+    BeginInterfaceFrame(frame_width(), frame_height(), 1.0f);
     draw_starting_frame(&app);
-    EndUIFrame();
+    EndInterfaceFrame();
     EndDrawing();
 
     while(!WindowShouldClose() && !app.quit_requested) {
@@ -683,7 +683,7 @@ int main(int argc, char **argv)
         }
         BeginDrawing();
         ClearBackground(app.palette.background);
-        BeginUIFrame(frame_width(), frame_height(), 1.0f);
+        BeginInterfaceFrame(frame_width(), frame_height(), 1.0f);
         app_update_auto_hide_mouse(&app);
         if(session != NULL) {
             draw_terminal_view(&app, session,
@@ -695,7 +695,7 @@ int main(int argc, char **argv)
         } else {
             draw_starting_frame(&app);
         }
-        EndUIFrame();
+        EndInterfaceFrame();
         EndDrawing();
     }
 

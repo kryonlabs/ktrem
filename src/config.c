@@ -121,15 +121,15 @@ static int config_path(char *path, int path_size)
     home = getenv("home");
     if(home == NULL || home[0] == '\0')
         return 0;
-    snprintf(path, (size_t)path_size, "%s/lib/ktrem/config", home);
+    snprintf(path, (size_t)path_size, "%s/lib/t9/config", home);
     return 1;
 #else
     xdg = getenv("XDG_CONFIG_HOME");
     home = getenv("HOME");
     if(xdg != NULL && xdg[0] != '\0')
-        snprintf(path, (size_t)path_size, "%s/ktrem/config", xdg);
+        snprintf(path, (size_t)path_size, "%s/t9/config", xdg);
     else if(home != NULL && home[0] != '\0')
-        snprintf(path, (size_t)path_size, "%s/.config/ktrem/config", home);
+        snprintf(path, (size_t)path_size, "%s/.config/t9/config", home);
     else
         return 0;
     return 1;

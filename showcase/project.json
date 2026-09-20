@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "slug": "ktrem",
-  "name": "ktrem",
+  "slug": "t9",
+  "name": "t9",
   "summary": "Native terminal application with sessions, tabs, and focused developer workflows.",
   "repository": {
     "platform": "github",
-    "url": "https://github.com/kryonlabs/ktrem",
+    "url": "https://github.com/kryonlabs/t9",
     "owner": "kryonlabs",
-    "name": "ktrem"
+    "name": "t9"
   },
   "homepage": "https://ktrem.kryonlabs.com",
   "banner": "showcase/banner.png",

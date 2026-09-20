@@ -16,7 +16,7 @@ permissions:
   contents: write
 
 env:
-  KTREM_DIR: ktrem
+  T9_DIR: t9
   KRYON_CHECKOUT_DIR: kryon
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
       - name: Check out t9
         uses: actions/checkout@v4
         with:
-          path: ${{ env.KTREM_DIR }}
+          path: ${{ env.T9_DIR }}
 
       - name: Check out Kryon
         uses: actions/checkout@v4
@@ -67,19 +67,19 @@ jobs:
         run: make all
 
       - name: Test t9
-        working-directory: ${{ env.KTREM_DIR }}
+        working-directory: ${{ env.T9_DIR }}
         env:
           ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_CHECKOUT_DIR }}
         run: make ENGINE_DIR="${ENGINE_DIR}" test
 
       - name: Build t9
-        working-directory: ${{ env.KTREM_DIR }}
+        working-directory: ${{ env.T9_DIR }}
         env:
           ENGINE_DIR: ${{ github.workspace }}/${{ env.KRYON_CHECKOUT_DIR }}
         run: make ENGINE_DIR="${ENGINE_DIR}" all
 
       - name: Package Linux release assets
-        working-directory: ${{ env.KTREM_DIR }}
+        working-directory: ${{ env.T9_DIR }}
         run: |
           set -eu
           version="${GITHUB_REF_NAME:-${GITHUB_SHA}}"
@@ -92,9 +92,7 @@ jobs:
           package="t9-linux-x86_64-${version}"
           mkdir -p "dist/${package}/bin"
           cp build/linux-x86_64/bin/t9 "dist/${package}/bin/t9"
-          ln -s t9 "dist/${package}/bin/ktrem"
-          ln -s t9 "dist/${package}/bin/kterm"
-          cp build/linux-x86_64/lib/ktrem-host.so "dist/${package}/bin/ktrem-host.so"
+          cp build/linux-x86_64/lib/t9-host.so "dist/${package}/bin/t9-host.so"
           cp README.md "dist/${package}/README.md"
           cp docs/REMAINING_FEATURE_PLAN.md \
             "dist/${package}/REMAINING_FEATURE_PLAN.md"
@@ -112,10 +110,8 @@ jobs:
             "${deb_root}/usr/share/doc/t9" \
             "${deb_root}/usr/share/icons/hicolor/scalable/apps"
           cp build/linux-x86_64/bin/t9 "${deb_root}/usr/bin/t9"
-          ln -s t9 "${deb_root}/usr/bin/ktrem"
-          ln -s t9 "${deb_root}/usr/bin/kterm"
-          cp build/linux-x86_64/lib/ktrem-host.so \
-            "${deb_root}/usr/lib/rill/apps/ktrem-host.so"
+          cp build/linux-x86_64/lib/t9-host.so \
+            "${deb_root}/usr/lib/rill/apps/t9-host.so"
           cp README.md "${deb_root}/usr/share/doc/t9/README.md"
           cp docs/site/favicon.svg \
             "${deb_root}/usr/share/icons/hicolor/scalable/apps/t9.svg"
@@ -151,17 +147,15 @@ jobs:
             "${appdir}/usr/share/applications" \
             "${appdir}/usr/share/icons/hicolor/scalable/apps"
           cp build/linux-x86_64/bin/t9 "${appdir}/usr/bin/t9"
-          ln -s t9 "${appdir}/usr/bin/ktrem"
-          ln -s t9 "${appdir}/usr/bin/kterm"
-          cp build/linux-x86_64/lib/ktrem-host.so \
-            "${appdir}/usr/lib/rill/apps/ktrem-host.so"
+          cp build/linux-x86_64/lib/t9-host.so \
+            "${appdir}/usr/lib/rill/apps/t9-host.so"
           cp docs/site/favicon.svg \
             "${appdir}/usr/share/icons/hicolor/scalable/apps/t9.svg"
           cp "${deb_root}/usr/share/applications/t9.desktop" \
             "${appdir}/usr/share/applications/t9.desktop"
           cp "${appdir}/usr/share/applications/t9.desktop" \
             "${appdir}/t9.desktop"
-          ln -s usr/share/icons/hicolor/scalable/apps/t9.svg \
+          cp "${appdir}/usr/share/icons/hicolor/scalable/apps/t9.svg" \
             "${appdir}/t9.svg"
           cat > "${appdir}/AppRun" <<'EOF'
           #!/bin/sh
@@ -185,14 +179,14 @@ jobs:
         with:
           name: t9-linux-x86_64
           path: |
-            ${{ env.KTREM_DIR }}/dist/*.tar.gz
-            ${{ env.KTREM_DIR }}/dist/*.deb
-            ${{ env.KTREM_DIR }}/dist/*.AppImage
-            ${{ env.KTREM_DIR }}/dist/SHA256SUMS
+            ${{ env.T9_DIR }}/dist/*.tar.gz
+            ${{ env.T9_DIR }}/dist/*.deb
+            ${{ env.T9_DIR }}/dist/*.AppImage
+            ${{ env.T9_DIR }}/dist/SHA256SUMS
 
       - name: Upload release assets
         if: github.event_name == 'release'
-        working-directory: ${{ env.KTREM_DIR }}
+        working-directory: ${{ env.T9_DIR }}
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}

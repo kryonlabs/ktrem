@@ -1,6 +1,6 @@
 # Terminal (`t9`)
 
-ktrem is a standalone terminal application using Kryon for windowing,
+t9 is a standalone terminal application using Kryon for windowing,
 rendering, input, and platform integration. The terminal emulator belongs here,
 not in Kryon.
 
@@ -12,7 +12,7 @@ make install
 ```
 
 `make install` installs the `t9` command, the Rill host module, and a
-desktop launcher named Terminal. `ktrem` and `kterm` remain command aliases.
+desktop launcher named Terminal.
 The default `PREFIX` is `~/.local`.
 
 Release builds are covered by `.github/workflows/release.yml`: pull requests
@@ -52,17 +52,17 @@ t9 --terminal-foreground '#f2f2f2' --terminal-background '#101010' --terminal-cu
 t9 --terminal-selection-foreground '#101010' --terminal-selection-background '#5a8fd8'
 ```
 
-ktrem accepts common xfce4-terminal launch aliases:
+t9 accepts common xfce4-terminal launch options:
 `--command`/`-e`, `--execute`/`-x`, `--default-working-directory`,
 `--title`/`-T`, `--hold`/`-H`, `--geometry`, `--fullscreen`, `--maximize`,
 `--drop-down`, `--disable-server`, `--tab`, `--window`, and
 menubar/toolbar/border visibility flags. `--tab` starts additional tabs from
 command-line specs. `--drop-down` starts a borderless top-of-screen terminal
 window. `--window` is accepted as a separator and currently opens another tab
-because ktrem does not have multi-window process/server support yet.
+because t9 does not have multi-window process/server support yet.
 
-Config is read from `$XDG_CONFIG_HOME/ktrem/config` or
-`~/.config/ktrem/config`:
+Config is read from `$XDG_CONFIG_HOME/t9/config` or
+`~/.config/t9/config`:
 
 ```ini
 font_size=16
@@ -78,16 +78,16 @@ shell=/bin/bash
 working_directory=/home/me/project
 ```
 
-String values saved by ktrem use backslash escapes for tabs, newlines, and
+String values saved by t9 use backslash escapes for tabs, newlines, and
 literal backslashes.
 
-ktrem restores open tabs on startup when no command is configured, including
+t9 restores open tabs on startup when no command is configured, including
 the active tab plus each tab's working directory, shell, command, scroll
 position, and manual title override. The restore file lives under
-`$XDG_STATE_HOME/ktrem/session`
-or `~/.local/state/ktrem/session`.
+`$XDG_STATE_HOME/t9/session`
+or `~/.local/state/t9/session`.
 
-ktrem chrome and default terminal foreground/background/cursor colors follow
+t9 chrome and default terminal foreground/background/cursor colors follow
 the Kryon system theme. Explicit profile colors and OSC color changes stay in
 control until reset.
 
@@ -175,7 +175,7 @@ Terminal graphics:
 - DECRQSS status-string reports answer SGR, scroll-margin, cursor-style, and
   character-protection queries with valid DCS responses.
 - XTGETTCAP (`DCS + q`) reports the terminal name, color capabilities, and the
-  special-key sequences ktrem actually emits.
+  special-key sequences t9 actually emits.
 - Horizontal tab set/clear controls are supported, including clearing all tab
   stops for terminal UI alignment.
 - DEC private cursor-position reports and DEC screen-alignment test are

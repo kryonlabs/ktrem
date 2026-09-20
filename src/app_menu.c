@@ -116,10 +116,10 @@ void draw_app_menu_bar(State *app, Rectangle bounds)
          APP_COMMAND_PREVIOUS_TAB, 0, 0, NULL, 0}
     };
     static const MenuItem help_items[] = {
-        {MenuCommand, "About ktrem", NULL,
+        {MenuCommand, "About Terminal", NULL,
          APP_COMMAND_ABOUT, 0, 0, NULL, 0}
     };
-    static const Menu menus[] = {
+    static const MenuGroup menus[] = {
         {{0.0f, 0.0f, 0.0f, 0.0f}, "File", file_items,
          (int)(sizeof(file_items) / sizeof(file_items[0]))},
         {{0.0f, 0.0f, 0.0f, 0.0f}, "Edit", edit_items,
@@ -133,12 +133,17 @@ void draw_app_menu_bar(State *app, Rectangle bounds)
         {{0.0f, 0.0f, 0.0f, 0.0f}, "Help", help_items,
          (int)(sizeof(help_items) / sizeof(help_items[0]))}
     };
-    MenuBarResult result;
+    MenuResult result;
 
     if(app == NULL)
         return;
-    result = MenuBar(1200, bounds, menus,
-                     (int)(sizeof(menus) / sizeof(menus[0])),
-                     &app->top_menu_index);
+    result = Menu((MenuProps){
+        .id = 1200,
+        .mode = MenuModeBar,
+        .bounds = bounds,
+        .menus = menus,
+        .menu_count = (int)(sizeof(menus) / sizeof(menus[0])),
+        .open_index = &app->top_menu_index
+    });
     app_execute_command(app, result.activated_id);
 }

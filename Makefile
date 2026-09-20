@@ -8,8 +8,6 @@ BINDIR ?= $(PREFIX)/bin
 RILL_APP_HOSTDIR ?= $(PREFIX)/lib/rill/apps
 APPDIR ?= $(PREFIX)/share/applications
 INSTALL ?= install
-LN ?= ln
-COMPAT_BINS ?= ktrem kterm
 
 UNAME_S := $(shell uname -s 2>/dev/null)
 UNAME_M := $(shell uname -m 2>/dev/null)
@@ -55,8 +53,8 @@ CMARK_EXT_A = $(ENGINE_BUILD_DIR)/vendor/cmark-gfm/extensions/libcmark-gfm-exten
 BOX2D_A = $(ENGINE_BUILD_DIR)/vendor/box2d/src/libbox2d.a
 
 APP = $(BUILD_DIR)/bin/t9
-HOST_LIB = $(BUILD_DIR)/lib/libktrem_host.a
-HOST_SO = $(BUILD_DIR)/lib/ktrem-host.so
+HOST_LIB = $(BUILD_DIR)/lib/libt9_host.a
+HOST_SO = $(BUILD_DIR)/lib/t9-host.so
 TEST = $(BUILD_DIR)/tests/terminal_test
 PARSER_BENCH = $(BUILD_DIR)/benchmarks/parser_replay
 SRC_FILES := $(filter-out src/terminal_pty_plan9.c,$(wildcard src/*.c))
@@ -218,8 +216,7 @@ benchmark-parser: $(PARSER_BENCH)
 install: $(APP) $(HOST_SO)
 	mkdir -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(RILL_APP_HOSTDIR) $(DESTDIR)$(APPDIR)
 	$(INSTALL) -m 755 $(APP) $(DESTDIR)$(BINDIR)/t9
-	$(INSTALL) -m 755 $(HOST_SO) $(DESTDIR)$(RILL_APP_HOSTDIR)/ktrem-host.so
-	for bin in $(COMPAT_BINS); do $(LN) -sf t9 $(DESTDIR)$(BINDIR)/$$bin; done
+	$(INSTALL) -m 755 $(HOST_SO) $(DESTDIR)$(RILL_APP_HOSTDIR)/t9-host.so
 	{ \
 		printf '%s\n' '[Desktop Entry]'; \
 		printf '%s\n' 'Type=Application'; \
@@ -229,7 +226,7 @@ install: $(APP) $(HOST_SO)
 		printf '%s\n' 'Icon=utilities-terminal'; \
 		printf '%s\n' 'Terminal=false'; \
 		printf '%s\n' 'Categories=System;TerminalEmulator;'; \
-		printf '%s\n' 'Keywords=terminal;shell;t9;ktrem;kterm;'; \
+		printf '%s\n' 'Keywords=terminal;shell;t9;'; \
 		printf '%s\n' 'StartupNotify=true'; \
 	} > $(DESTDIR)$(APPDIR)/t9.desktop
 	if command -v update-desktop-database >/dev/null 2>&1; then update-desktop-database $(DESTDIR)$(APPDIR); fi

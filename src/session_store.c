@@ -18,14 +18,14 @@ static int state_dir(char *path, int path_size)
         return 0;
 #if defined(KRYON_NATIVE_PLAN9)
     if(home != NULL && home[0] != '\0')
-        snprintf(path, (size_t)path_size, "%s/lib/ktrem", home);
+        snprintf(path, (size_t)path_size, "%s/lib/t9", home);
     else
         return 0;
 #else
     if(xdg != NULL && xdg[0] != '\0')
-        snprintf(path, (size_t)path_size, "%s/ktrem", xdg);
+        snprintf(path, (size_t)path_size, "%s/t9", xdg);
     else if(home != NULL && home[0] != '\0')
-        snprintf(path, (size_t)path_size, "%s/.local/state/ktrem", home);
+        snprintf(path, (size_t)path_size, "%s/.local/state/t9", home);
     else
         return 0;
 #endif
@@ -79,7 +79,7 @@ int session_store_save(const Session *sessions, int session_count, int active)
     file = fopen(path, "w");
     if(file == NULL)
         return 0;
-    fprintf(file, "active=%d\n", active);
+    fprintf(file, "active=%d\n", session_count > 0 ? active : 0);
     for(i = 0; i < session_count; i++) {
         char cwd[1024];
         char line[8192];

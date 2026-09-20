@@ -183,7 +183,7 @@ static void handle_selection(State *app, Session *session)
     }
     if(app->selection.dragging && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
         int scroll_delta = selection_edge_scroll_delta(
-            mouse.y, app->viewport.y, app->viewport.height, ScaleUIPx(24));
+            mouse.y, app->viewport.y, app->viewport.height, Scale(24));
 
         if(row < 0 || scroll_delta != 0) {
             int total = terminal_visible_line_count(&session->terminal);

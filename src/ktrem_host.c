@@ -145,25 +145,25 @@ load_kryon_font(const Config *config)
     int ui_loaded = 0;
 
     for(i = 0; ui_paths[i] != NULL; i++) {
-        if(RegisterUIFontFileSource("ktrem-ui", ui_paths[i], NULL, 0) &&
-           UseUIFont("ktrem-ui")) {
+        if(RegisterTextFontFileSource("t9-ui", ui_paths[i], NULL, 0) &&
+           UseTextFont("t9-ui")) {
             ui_loaded = 1;
             break;
         }
     }
     if(!ui_loaded)
-        EnsureUIDefaultFont();
+        EnsureDefaultFont();
     if(config != NULL && config->terminal_font[0] != '\0' &&
-       RegisterUIFontFileSource("ktrem-terminal", config->terminal_font,
+       RegisterTextFontFileSource("t9-terminal", config->terminal_font,
                                 NULL, 0))
         goto done;
     for(i = 0; terminal_paths[i] != NULL; i++) {
-        if(RegisterUIFontFileSource("ktrem-terminal", terminal_paths[i],
+        if(RegisterTextFontFileSource("t9-terminal", terminal_paths[i],
                                     NULL, 0))
             break;
     }
 done:
-    (void)UseUIFont("ktrem-terminal");
+    (void)UseTextFont("t9-terminal");
 }
 
 static void

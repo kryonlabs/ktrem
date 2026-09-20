@@ -27,7 +27,7 @@ typedef struct Plan9TerminalSession {
     volatile uint head;
     volatile uint tail;
     uchar ring[PLAN9_RING_SIZE];
-#ifdef KTREM_PLAN9_EMBEDDED_HOST
+#ifdef T9_PLAN9_EMBEDDED_HOST
     char spool_path[128];
     char done_path[128];
     vlong spool_offset;
@@ -125,7 +125,7 @@ static void plan9_reader_loop(Plan9TerminalSession *session)
 {
     uchar buffer[4096];
 
-#ifdef KTREM_PLAN9_EMBEDDED_HOST
+#ifdef T9_PLAN9_EMBEDDED_HOST
     int spool;
 
     spool = -1;
@@ -185,11 +185,11 @@ static int plan9_start_reader(Plan9TerminalSession *session)
 {
     int pid;
 
-#ifdef KTREM_PLAN9_EMBEDDED_HOST
+#ifdef T9_PLAN9_EMBEDDED_HOST
     snprint(session->spool_path, sizeof(session->spool_path),
-            "/tmp/kterm.%d.%d.out", getpid(), session->slot);
+            "/tmp/t9.%d.%d.out", getpid(), session->slot);
     snprint(session->done_path, sizeof(session->done_path),
-            "/tmp/kterm.%d.%d.done", getpid(), session->slot);
+            "/tmp/t9.%d.%d.done", getpid(), session->slot);
     remove(session->spool_path);
     remove(session->done_path);
     session->spool_offset = 0;
@@ -207,7 +207,7 @@ static int plan9_start_reader(Plan9TerminalSession *session)
     return 1;
 }
 
-#ifdef KTREM_PLAN9_EMBEDDED_HOST
+#ifdef T9_PLAN9_EMBEDDED_HOST
 static int plan9_poll_spool(Plan9TerminalSession *session)
 {
     char buffer[4096];
@@ -385,7 +385,7 @@ int terminal_write_text(TerminalState *terminal, const char *text)
 int terminal_poll_bytes(TerminalState *terminal)
 {
     Plan9TerminalSession *session;
-#ifndef KTREM_PLAN9_EMBEDDED_HOST
+#ifndef T9_PLAN9_EMBEDDED_HOST
     char buffer[4096];
 #endif
     int bytes;
@@ -395,7 +395,7 @@ int terminal_poll_bytes(TerminalState *terminal)
     session = plan9_find_session(terminal);
     if(session == nil)
         return 0;
-#ifdef KTREM_PLAN9_EMBEDDED_HOST
+#ifdef T9_PLAN9_EMBEDDED_HOST
     bytes = plan9_poll_spool(session);
 #else
     bytes = 0;
@@ -484,7 +484,7 @@ void terminal_close(TerminalState *terminal)
             postnote(PNPROC, session->child_pid, "hangup");
         if(session->reader_pid > 0)
             postnote(PNPROC, session->reader_pid, "hangup");
-#ifdef KTREM_PLAN9_EMBEDDED_HOST
+#ifdef T9_PLAN9_EMBEDDED_HOST
         if(session->spool_path[0] != '\0')
             remove(session->spool_path);
         if(session->done_path[0] != '\0')
